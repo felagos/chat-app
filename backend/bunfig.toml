@@ -9,8 +9,8 @@ preload = []
 root = "./src"
 
 [install]
-# If you want to use bun with a lockfile
-lockfile = { save = true, print = "yarn" }
+# Comentado: La configuración de lockfile genera yarn.lock
+# lockfile = { save = true, print = "yarn" }
 
 [define]
 # Environment variables or constants for build time
