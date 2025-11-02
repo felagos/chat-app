@@ -8,7 +8,6 @@ export const startMessageConsumer = async (): Promise<void> => {
 
       const data = JSON.parse(msg.content.toString());
 
-      // Save message to database
       const message = await prisma.message.create({
         data: {
           content: data.content,
@@ -20,7 +19,6 @@ export const startMessageConsumer = async (): Promise<void> => {
 
       console.log(`📨 Message saved: ${message.id}`);
 
-      // Publish notification
       await publishMessage('chat', 'notification.send', {
         type: 'message',
         conversationId: data.conversationId,
@@ -40,7 +38,6 @@ export const startNotificationConsumer = async (): Promise<void> => {
       const data = JSON.parse(msg.content.toString());
       console.log('🔔 Notification:', data);
 
-      // Process notification (send email, push notification, etc)
     } catch (error) {
       console.error('Error processing notification:', error);
     }

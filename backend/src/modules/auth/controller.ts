@@ -7,13 +7,11 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
   try {
     const { email, username, password } = req.body;
 
-    // Validate input
     if (!email || !username || !password) {
       res.status(400).json({ error: 'Missing required fields' });
       return;
     }
 
-    // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [{ email }, { username }]
@@ -25,10 +23,8 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
       return;
     }
 
-    // Hash password
     const hashedPassword = await bcryptjs.hash(password, 10);
 
-    // Create user
     const user = await prisma.user.create({
       data: {
         email,
@@ -37,7 +33,6 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
       }
     });
 
-    // Generate token
     const token = generateToken(user.id, user.email);
 
     res.status(201).json({
@@ -58,13 +53,11 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
     if (!email || !password) {
       res.status(400).json({ error: 'Missing required fields' });
       return;
     }
 
-    // Find user
     const user = await prisma.user.findUnique({
       where: { email }
     });
@@ -74,7 +67,6 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    // Compare passwords
     const isPasswordValid = await bcryptjs.compare(password, user.password);
 
     if (!isPasswordValid) {
@@ -82,7 +74,6 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    // Generate token
     const token = generateToken(user.id, user.email);
 
     res.json({

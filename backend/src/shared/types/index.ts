@@ -1,6 +1,5 @@
 import { Prisma } from '@prisma/client';
 
-// Define reusable validators with Prisma.validator
 const conversationWithParticipantsValidator = Prisma.validator<Prisma.ConversationDefaultArgs>()({
   include: { participants: true }
 });
@@ -29,7 +28,6 @@ const messageWithUserValidator = Prisma.validator<Prisma.MessageDefaultArgs>()({
   }
 });
 
-// Extract types from validators
 export type ConversationWithParticipants = Prisma.ConversationGetPayload<
   typeof conversationWithParticipantsValidator
 >;

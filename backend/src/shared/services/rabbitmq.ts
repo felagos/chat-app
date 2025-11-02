@@ -10,7 +10,6 @@ export const connectRabbitMQ = async (): Promise<void> => {
     connection = await amqp.connect(RABBITMQ_URL);
     channel = await connection.createChannel();
 
-    // Setup exchanges and queues
     await channel.assertExchange('chat', 'topic', { durable: true });
     await channel.assertQueue('messages.queue', { durable: true });
     await channel.assertQueue('notifications.queue', { durable: true });

@@ -95,7 +95,6 @@ export const getConversation = async (req: AuthRequest, res: Response): Promise<
       return;
     }
 
-    // Verify user is a participant
     const isParticipant = conversation.participants.some((p: { id: string }) => p.id === userId);
     if (!isParticipant) {
       res.status(403).json({ error: 'Forbidden' });
@@ -120,7 +119,6 @@ export const getMessages = async (req: AuthRequest, res: Response): Promise<void
       return;
     }
 
-    // Verify user is a participant
     const conversation = await prisma.conversation.findUnique({
       where: { id },
       include: { participants: true }
