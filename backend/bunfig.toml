@@ -1,0 +1,16 @@
+# Bun Configuration File
+# https://bun.sh/docs/runtime/bunfig
+
+[test]
+root = "./tests"
+preload = []
+
+[bundle]
+root = "./src"
+
+[install]
+# If you want to use bun with a lockfile
+lockfile = { save = true, print = "yarn" }
+
+[define]
+# Environment variables or constants for build time
