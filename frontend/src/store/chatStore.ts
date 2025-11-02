@@ -19,6 +19,7 @@ interface ChatState {
   setTyping: (conversationId: string, userId: string, isTyping: boolean) => void;
   setLoading: (loading: boolean) => void;
   createConversation: (username: string) => Promise<void>;
+  createGroup: (groupName: string, participantUsernames: string[]) => Promise<void>;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -102,6 +103,50 @@ export const useChatStore = create<ChatState>((set) => ({
       }));
     } catch (error) {
       console.error('Error creating conversation:', error);
+    }
+  },
+
+  createGroup: async (groupName: string, participantUsernames: string[]) => {
+    try {
+      const token = useAuthStore.getState().token;
+      if (!token) {
+        console.error('No authentication token');
+        return;
+      }
+
+      // Buscar IDs de los participantes
+      const participantIds: string[] = [];
+      for (const username of participantUsernames) {
+        try {
+          const userResponse = await apiClient.get(`/users/search?username=${username}`, token);
+          // Si es un array, tomar el primer resultado
+          if (Array.isArray(userResponse) && userResponse.length > 0) {
+            participantIds.push(userResponse[0].id);
+          } else if (userResponse?.id) {
+            participantIds.push(userResponse.id);
+          }
+        } catch {
+          console.warn(`Usuario ${username} no encontrado`);
+        }
+      }
+
+      const response = await apiClient.post(
+        '/chat',
+        {
+          name: groupName,
+          type: 'group',
+          participantIds,
+        },
+        token
+      );
+      const conversation = response;
+
+      set((state) => ({
+        conversations: [conversation, ...state.conversations],
+        activeConversationId: conversation.id,
+      }));
+    } catch (error) {
+      console.error('Error creating group:', error);
     }
   },
 }));

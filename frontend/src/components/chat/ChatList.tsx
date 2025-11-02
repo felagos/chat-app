@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react';
 import styles from '../../styles/components/ChatList.module.scss';
 import { useChatStore } from '../../store/chatStore';
 import { formatDate, truncateText } from '../../lib/utils';
+import { CreateGroupModal } from './CreateGroupModal';
+import { OptionsMenu } from './OptionsMenu';
 
 export const ChatList = () => {
   const {
@@ -10,6 +12,8 @@ export const ChatList = () => {
     setActiveConversation,
   } = useChatStore();
   const [searchTerm, setSearchTerm] = useState('');
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
 
   const filteredConversations = useMemo(
     () =>
@@ -26,7 +30,12 @@ export const ChatList = () => {
       <div className={styles.header}>
         <h2>Chats</h2>
         <div className={styles.icons}>
-          <button title="Nueva comunidad">👥</button>
+          <button 
+            title="Nueva comunidad"
+            onClick={() => setShowCreateGroup(true)}
+          >
+            👥
+          </button>
           <button title="Más opciones">⋮</button>
         </div>
       </div>
@@ -99,6 +108,16 @@ export const ChatList = () => {
           ))
         )}
       </div>
+
+      <CreateGroupModal 
+        isOpen={showCreateGroup} 
+        onClose={() => setShowCreateGroup(false)} 
+      />
+
+      <OptionsMenu 
+        isOpen={showOptions} 
+        onClose={() => setShowOptions(false)} 
+      />
     </div>
   );
 };

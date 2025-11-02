@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # Databases
   postgres:
     image: postgres:16-alpine
     environment:
@@ -16,6 +17,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - chat_network
+    restart: unless-stopped
 
   mongodb:
     image: mongo:7
@@ -31,6 +35,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - chat_network
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
@@ -43,6 +50,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - chat_network
+    restart: unless-stopped
 
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
@@ -55,103 +65,28 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
-      test: rabbitmq-diagnostics -q ping
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # Message Queue Service - Instancia 1
-  message-queue-service-1:
-    build:
-      context: ./message-queue-service
-      dockerfile: Dockerfile
-    environment:
-      NODE_ENV: production
-      PORT: 3001
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-      INSTANCE: mqs-1
-      LOG_LEVEL: info
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  # Message Queue Service - Instancia 2
-  message-queue-service-2:
-    build:
-      context: ./message-queue-service
-      dockerfile: Dockerfile
-    environment:
-      NODE_ENV: production
-      PORT: 3001
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-      INSTANCE: mqs-2
-      LOG_LEVEL: info
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  # Message Queue Service - Instancia 3
-  message-queue-service-3:
-    build:
-      context: ./message-queue-service
-      dockerfile: Dockerfile
-    environment:
-      NODE_ENV: production
-      PORT: 3001
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-      INSTANCE: mqs-3
-      LOG_LEVEL: info
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  # Nginx Load Balancer para Message Queue Service
-  mqs-loadbalancer:
-    image: nginx:latest
-    ports:
-      - "3001:80"
-    volumes:
-      - ./nginx-mqs.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - message-queue-service-1
-      - message-queue-service-2
-      - message-queue-service-3
+    networks:
+      - chat_network
     restart: unless-stopped
 
-  # Backend - Instancia 1
-  backend-1:
+  # Single Backend Service
+  backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "3010:3000"
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       PORT: 3000
       DATABASE_URL: postgresql://user:password@postgres:5432/chat_app
-      MONGODB_URL: mongodb://user:password@mongodb:27017/chat_app
+      MONGODB_URL: mongodb://user:password@mongodb:27017/chat_app?authSource=admin
       REDIS_URL: redis://redis:6379
-      MESSAGE_QUEUE_SERVICE_URL: http://mqs-loadbalancer:80
-      JWT_SECRET: your_jwt_secret_key_here_1
-      INSTANCE: backend-1
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    ports:
+      - "3000:3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -159,90 +94,15 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      mqs-loadbalancer:
-        condition: service_started
-    restart: unless-stopped
+      rabbitmq:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 10s
       timeout: 5s
-      retries: 3
-
-  # Backend - Instancia 2
-  backend-2:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "3011:3000"
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      DATABASE_URL: postgresql://user:password@postgres:5432/chat_app
-      MONGODB_URL: mongodb://user:password@mongodb:27017/chat_app
-      REDIS_URL: redis://redis:6379
-      MESSAGE_QUEUE_SERVICE_URL: http://mqs-loadbalancer:80
-      JWT_SECRET: your_jwt_secret_key_here_2
-      INSTANCE: backend-2
-    depends_on:
-      postgres:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      mqs-loadbalancer:
-        condition: service_started
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  # Backend - Instancia 3
-  backend-3:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "3012:3000"
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      DATABASE_URL: postgresql://user:password@postgres:5432/chat_app
-      MONGODB_URL: mongodb://user:password@mongodb:27017/chat_app
-      REDIS_URL: redis://redis:6379
-      MESSAGE_QUEUE_SERVICE_URL: http://mqs-loadbalancer:80
-      JWT_SECRET: your_jwt_secret_key_here_3
-      INSTANCE: backend-3
-    depends_on:
-      postgres:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      mqs-loadbalancer:
-        condition: service_started
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  # Nginx Load Balancer para Backend
-  backend-loadbalancer:
-    image: nginx:latest
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx-backend.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - backend-1
-      - backend-2
-      - backend-3
+      retries: 5
+    networks:
+      - chat_network
     restart: unless-stopped
 
 volumes:
@@ -250,3 +110,7 @@ volumes:
   mongodb_data:
   redis_data:
   rabbitmq_data:
+
+networks:
+  chat_network:
+    driver: bridge

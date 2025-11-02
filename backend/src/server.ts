@@ -9,6 +9,7 @@ import { startSessionCleanupInterval } from './shared/services/pushNotification'
 import { checkMessageQueueServiceHealth } from './shared/services/messageQueueClient';
 import authRoutes from './modules/auth/routes';
 import chatRoutes from './modules/chat/routes';
+import usersRoutes from './modules/users/routes';
 import { errorHandler } from './shared/middleware/errorHandler';
 
 dotenv.config();
@@ -17,31 +18,31 @@ const app = express();
 const httpServer = createServer(app);
 
 app.use(cors({
-  origin: [
-    'http://localhost:3001', // Frontend production port
-    'http://localhost:5173', // Vite dev server
-    'http://localhost:3000'  // Alternative frontend port
-  ],
-  credentials: true
+  origin: function(origin, callback) {
+    // Always allow the request (for development)
+    callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: [
-      'http://localhost:3001', // Frontend production port
-      'http://localhost:5173', // Vite dev server
-      'http://localhost:3000'  // Alternative frontend port
-    ],
-    credentials: true
-  }
+    origin: true, // Allow all origins in development
+    credentials: true,
+    methods: ['GET', 'POST']
+  },
+  transports: ['websocket', 'polling']
 });
 
 setupSocketIO(io);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/users', usersRoutes);
 
 app.get('/health', async (req, res) => {
   try {
