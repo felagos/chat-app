@@ -1,0 +1,99 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-width: 400px;
+
+  h2 {
+    margin: 0 0 1rem 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    text-align: center;
+    color: #111827;
+  }
+
+  .error {
+    padding: 1rem;
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    border-left: 4px solid #dc2626;
+  }
+
+  .group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    label {
+      font-weight: 500;
+      color: #374151;
+      font-size: 0.95rem;
+    }
+
+    input {
+      padding: 0.75rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+
+      &:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+
+      &:disabled {
+        background: #f3f4f6;
+        cursor: not-allowed;
+      }
+
+      &::placeholder {
+        color: #d1d5db;
+      }
+    }
+  }
+
+  .submitBtn {
+    padding: 0.75rem 1.5rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover:not(:disabled) {
+      background: #2563eb;
+    }
+
+    &:disabled {
+      background: #d1d5db;
+      cursor: not-allowed;
+    }
+  }
+
+  .link {
+    margin: 1rem 0 0 0;
+    text-align: center;
+    font-size: 0.875rem;
+    color: #6b7280;
+
+    a {
+      color: #3b82f6;
+      font-weight: 600;
+
+      &:hover {
+        color: #2563eb;
+      }
+    }
+  }
+}

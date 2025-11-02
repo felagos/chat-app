@@ -1,23 +1,154 @@
-# React + TypeScript + Vite
+# Chat App - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interfaz web moderna para la aplicación de chat en tiempo real construida con React, TypeScript y Vite.
 
-Currently, two official plugins are available:
+## Stack Tecnológico
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 19**: UI library
+- **TypeScript**: Type-safe development
+- **Vite**: Fast build tool
+- **React Router**: SPA routing
+- **Zustand**: State management
+- **Socket.io Client**: Real-time communication
+- **TanStack Query**: Data fetching & caching
+- **React Hook Form**: Form management
+- **SCSS**: Styling
 
-## React Compiler
+## Requisitos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js 18+
+- Bun 1.0+ (recomendado) o npm/yarn
 
-## Expanding the ESLint configuration
+## Instalación
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+# Instalar dependencias
+bun install
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
+# O con npm/yarn
+npm install
+yarn install
+```
+
+## Variables de Entorno
+
+Crear archivo `.env.local`:
+
+```env
+VITE_API_URL=http://localhost:3000/api
+VITE_WS_URL=http://localhost:3000
+```
+
+## Desarrollo
+
+```bash
+# Iniciar servidor de desarrollo
+bun run dev
+
+# Verificar tipos TypeScript
+bun run type-check
+
+# Lint
+bun run lint
+```
+
+El servidor estará disponible en `http://localhost:5173`
+
+## Build
+
+```bash
+# Build para producción
+bun run build
+
+# Preview del build
+bun run preview
+```
+
+## Estructura del Proyecto
+
+```
+src/
+├── app/              # Páginas principales (chat, auth)
+├── components/
+│   ├── chat/         # ChatList, MessageList, MessageInput
+│   ├── auth/         # Auth components
+│   └── layout/       # Header, Layout components
+├── hooks/            # Custom React hooks
+│   ├── useSocket     # WebSocket management
+│   ├── useChat       # Chat logic
+│   └── useAuth       # Authentication
+├── lib/
+│   ├── socket.ts     # Socket.io client
+│   ├── api.ts        # API client & TanStack Query
+│   └── utils.ts      # Utility functions
+├── store/            # Zustand stores
+│   ├── authStore.ts
+│   └── chatStore.ts
+├── types/            # TypeScript types
+└── styles/           # SCSS stylesheets
+```
+
+## Características
+
+✅ Autenticación JWT
+✅ Chat en tiempo real con WebSocket
+✅ Soporte de múltiples conversaciones
+✅ Indicadores de escritura
+✅ Lista de conversaciones actualizada
+✅ Interfaz responsive
+✅ Estado persistente
+✅ Type-safe con TypeScript
+
+## API Integration
+
+El frontend se conecta a la API backend en `http://localhost:3000/api` y al servidor WebSocket en `http://localhost:3000`.
+
+### Endpoints principales:
+
+- `POST /auth/register` - Registrar usuario
+- `POST /auth/login` - Iniciar sesión
+- `GET /conversations` - Obtener conversaciones
+- `GET /conversations/:id/messages` - Obtener mensajes
+- `POST /conversations` - Crear conversación
+
+### Eventos WebSocket:
+
+- `send_message` - Enviar mensaje
+- `typing` - Indicar que está escribiendo
+- `new_message` - Mensaje recibido
+- `presence_update` - Actualización de presencia
+
+## Notas de Desarrollo
+
+- El estado se persiste en localStorage via Zustand
+- Las consultas se cachean por 5 minutos
+- Los tokens se almacenan en localStorage
+- Las reconexiones WebSocket se reintentan automáticamente
+
+## Troubleshooting
+
+**Error: Cannot find module 'react-router-dom'**
+```bash
+bun add react-router-dom
+```
+
+**Error: CORS**
+Verificar que el backend tiene CORS habilitado para `http://localhost:5173`
+
+**WebSocket no conecta**
+Verificar que `VITE_WS_URL` apunta al servidor backend correcto
+
+## Contributing
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## License
+
+MIT
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

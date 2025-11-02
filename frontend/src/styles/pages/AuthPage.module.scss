@@ -1,0 +1,43 @@
+.authPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  .container {
+    display: flex;
+    gap: 4rem;
+    align-items: center;
+    max-width: 1000px;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 2rem;
+      padding: 2rem;
+    }
+  }
+
+  .branding {
+    color: white;
+    flex: 1;
+
+    @media (max-width: 768px) {
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin: 0 0 1rem 0;
+      letter-spacing: -1px;
+    }
+
+    p {
+      font-size: 1.25rem;
+      margin: 0;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+  }
+}

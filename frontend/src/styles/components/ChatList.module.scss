@@ -1,0 +1,144 @@
+.chatList {
+  width: 320px;
+  height: 100%;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  background: white;
+
+  .header {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #111827;
+    }
+  }
+
+  .conversationList {
+    flex: 1;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 4px;
+
+      &:hover {
+        background: #9ca3af;
+      }
+    }
+  }
+
+  .empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #9ca3af;
+    font-size: 0.875rem;
+  }
+
+  .conversationItem {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    margin: 0.25rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #f3f4f6;
+    }
+
+    &.active {
+      background-color: #e5e7eb;
+    }
+
+    .avatar {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .placeholder {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #6b7280;
+      }
+    }
+
+    .content {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.25rem;
+
+        .name {
+          font-weight: 500;
+          color: #111827;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .time {
+          font-size: 0.75rem;
+          color: #9ca3af;
+          flex-shrink: 0;
+          margin-left: 0.5rem;
+        }
+      }
+
+      .preview {
+        margin: 0;
+        font-size: 0.875rem;
+        color: #6b7280;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: #3b82f6;
+        color: white;
+        font-size: 0.625rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        min-width: 20px;
+        text-align: center;
+      }
+    }
+  }
+}
