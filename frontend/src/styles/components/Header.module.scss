@@ -1,32 +1,29 @@
 .header {
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 1rem 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: var(--wa-green);
+  padding: 0.75rem 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 
   .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 1.5rem;
     max-width: 100%;
-    gap: 2rem;
+    gap: 1rem;
   }
 
   .title {
     margin: 0;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #3b82f6;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: white;
     flex-shrink: 0;
   }
 
   .searchSection {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     align-items: center;
     flex: 1;
-    max-width: 400px;
 
     .searchBox {
       display: flex;
@@ -36,23 +33,33 @@
       .searchInput {
         flex: 1;
         padding: 0.5rem 1rem;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
+        border: none;
+        border-radius: 20px;
         font-size: 0.875rem;
         outline: none;
-        transition: border-color 0.2s;
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--wa-text);
+
+        &::placeholder {
+          color: var(--wa-text-secondary);
+        }
 
         &:focus {
-          border-color: #3b82f6;
+          background: white;
         }
       }
 
       .searchBtn {
         padding: 0.5rem 1rem;
-        background: #3b82f6;
+        background: rgba(255, 255, 255, 0.3);
         color: white;
         border: none;
-        border-radius: 6px;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 0.875rem;
         font-weight: 600;
         cursor: pointer;
@@ -60,54 +67,86 @@
         white-space: nowrap;
 
         &:hover {
-          background: #2563eb;
+          background: rgba(255, 255, 255, 0.4);
         }
       }
     }
 
     .newChatBtn {
-      padding: 0.5rem 1rem;
-      background: #3b82f6;
+      padding: 0;
+      background: none;
       color: white;
       border: none;
-      border-radius: 6px;
-      font-size: 0.875rem;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
       font-weight: 600;
       cursor: pointer;
       transition: background-color 0.2s;
       white-space: nowrap;
 
       &:hover {
-        background: #2563eb;
+        background: rgba(255, 255, 255, 0.2);
       }
     }
   }
 
   .userSection {
     display: flex;
-    gap: 1rem;
+    gap: 0.75rem;
     align-items: center;
     flex-shrink: 0;
 
     .username {
-      font-size: 0.95rem;
-      color: #6b7280;
-      font-weight: 500;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 400;
+      display: none;
+
+      @media (min-width: 1024px) {
+        display: inline;
+      }
     }
 
     .logoutBtn {
       padding: 0.5rem 1rem;
-      background: #ef4444;
+      background: rgba(255, 255, 255, 0.2);
       color: white;
       border: none;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-weight: 600;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 500;
       cursor: pointer;
       transition: background-color 0.2s;
 
       &:hover {
-        background: #dc2626;
+        background: rgba(255, 255, 255, 0.3);
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    .container {
+      gap: 0.5rem;
+    }
+
+    .title {
+      font-size: 1.125rem;
+    }
+
+    .searchSection {
+      .searchBox {
+        display: none;
+      }
+
+      .newChatBtn {
+        order: -1;
       }
     }
   }

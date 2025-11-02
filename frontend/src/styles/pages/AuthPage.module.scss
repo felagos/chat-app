@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--wa-green) 0%, var(--wa-green-light) 100%);
 
   .container {
     display: flex;
@@ -28,16 +28,17 @@
 
     h1 {
       font-size: 3rem;
-      font-weight: 800;
+      font-weight: 600;
       margin: 0 0 1rem 0;
-      letter-spacing: -1px;
+      letter-spacing: -0.5px;
     }
 
     p {
-      font-size: 1.25rem;
+      font-size: 1.125rem;
       margin: 0;
-      opacity: 0.9;
+      opacity: 0.95;
       line-height: 1.6;
+      font-weight: 300;
     }
   }
 }

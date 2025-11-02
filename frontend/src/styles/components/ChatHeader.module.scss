@@ -1,0 +1,121 @@
+.chatHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border-bottom: 1px solid var(--wa-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+
+  .info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+
+    .avatar {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--wa-green-light), var(--wa-green-lighter));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .placeholder {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: white;
+      }
+    }
+
+    .details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+
+      .name {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--wa-text);
+      }
+
+      .status {
+        margin: 0;
+        font-size: 0.75rem;
+        color: var(--wa-text-secondary);
+      }
+    }
+  }
+
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+
+    .iconBtn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--wa-green);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: var(--wa-gray);
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .chatHeader {
+    padding: 0.75rem;
+
+    .info {
+      gap: 0.75rem;
+
+      .avatar {
+        width: 36px;
+        height: 36px;
+
+        .placeholder {
+          font-size: 1rem;
+        }
+      }
+
+      .details {
+        .name {
+          font-size: 0.9rem;
+        }
+
+        .status {
+          font-size: 0.7rem;
+        }
+      }
+    }
+
+    .actions {
+      .iconBtn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}

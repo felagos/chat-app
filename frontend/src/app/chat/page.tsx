@@ -5,6 +5,7 @@ import { useLoadConversations } from '../../hooks/useLoadConversations';
 import { useAuthStore } from '../../store/authStore';
 import { useChatStore } from '../../store/chatStore';
 import { Header } from '../../components/layout/Header';
+import { ChatHeader } from '../../components/chat/ChatHeader';
 import { ChatList } from '../../components/chat/ChatList';
 import { MessageList } from '../../components/chat/MessageList';
 import { MessageInput } from '../../components/chat/MessageInput';
@@ -36,12 +37,15 @@ export default function ChatPage() {
         <div className={styles.chatArea}>
           {activeConversationId ? (
             <>
+              <ChatHeader />
               <MessageList />
               <MessageInput />
             </>
           ) : (
             <div className={styles.emptyState}>
-              <p>Selecciona una conversación para comenzar</p>
+              <div className={styles.icon}>💬</div>
+              <h2>Selecciona una conversación</h2>
+              <p>Elige un chat de la lista para empezar a conversar</p>
             </div>
           )}
         </div>

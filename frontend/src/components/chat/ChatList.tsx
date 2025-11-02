@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import styles from '../../styles/components/ChatList.module.scss';
 import { useChatStore } from '../../store/chatStore';
 import { formatDate, truncateText } from '../../lib/utils';
@@ -8,20 +9,47 @@ export const ChatList = () => {
     activeConversationId,
     setActiveConversation,
   } = useChatStore();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredConversations = useMemo(
+    () =>
+      conversations.filter((conversation) => {
+        const name =
+          conversation.name || conversation.participants[0]?.username || '';
+        return name.toLowerCase().includes(searchTerm.toLowerCase());
+      }),
+    [conversations, searchTerm]
+  );
 
   return (
     <div className={styles.chatList}>
       <div className={styles.header}>
-        <h2>Mensajes</h2>
+        <h2>Chats</h2>
+        <div className={styles.icons}>
+          <button title="Nueva comunidad">👥</button>
+          <button title="Más opciones">⋮</button>
+        </div>
+      </div>
+
+      <div className={styles.searchBox}>
+        <input
+          type="text"
+          placeholder="Buscar chat..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className={styles.searchInput}
+        />
       </div>
 
       <div className={styles.conversationList}>
-        {conversations.length === 0 ? (
+        {filteredConversations.length === 0 ? (
           <div className={styles.empty}>
-            <p>No hay conversaciones</p>
+            <p>
+              {searchTerm ? 'No se encontraron chats' : 'No hay conversaciones'}
+            </p>
           </div>
         ) : (
-          conversations.map((conversation) => (
+          filteredConversations.map((conversation) => (
             <div
               key={conversation.id}
               className={`${styles.conversationItem} ${
@@ -37,7 +65,7 @@ export const ChatList = () => {
                   />
                 ) : (
                   <div className={styles.placeholder}>
-                    {conversation.name?.[0] || '?'}
+                    {conversation.name?.[0] || conversation.participants[0]?.username?.[0] || '?'}
                   </div>
                 )}
               </div>

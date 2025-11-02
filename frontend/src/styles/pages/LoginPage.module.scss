@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--wa-green) 0%, var(--wa-green-light) 100%);
   padding: 1rem;
 
   .container {
@@ -15,15 +15,22 @@
     background: white;
     border-radius: 12px;
     padding: 2rem;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   }
 
   .title {
     text-align: center;
-    margin: 0 0 2rem 0;
+    margin: 0 0 0.5rem 0;
     font-size: 2rem;
-    font-weight: 700;
-    color: #667eea;
+    font-weight: 600;
+    color: var(--wa-green);
+  }
+
+  .subtitle {
+    text-align: center;
+    margin: 0 0 2rem 0;
+    font-size: 0.875rem;
+    color: var(--wa-text-secondary);
   }
 
   .form {
@@ -35,7 +42,7 @@
 
   .input {
     padding: 0.75rem 1rem;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--wa-border);
     border-radius: 8px;
     font-size: 1rem;
     font-family: inherit;
@@ -43,12 +50,12 @@
 
     &:focus {
       outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      border-color: var(--wa-green);
+      box-shadow: 0 0 0 3px rgba(7, 94, 84, 0.1);
     }
 
     &::placeholder {
-      color: #9ca3af;
+      color: var(--wa-text-secondary);
     }
   }
 
@@ -59,11 +66,12 @@
     border-radius: 8px;
     font-size: 0.875rem;
     text-align: center;
+    border-left: 4px solid #991b1b;
   }
 
   .button {
     padding: 0.75rem 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--wa-green) 0%, var(--wa-green-light) 100%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -74,7 +82,11 @@
 
     &:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 10px 20px rgba(7, 94, 84, 0.3);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
     }
 
     &:disabled {
@@ -89,14 +101,15 @@
     padding: 0.5rem;
     background: none;
     border: none;
-    color: #667eea;
+    color: var(--wa-green);
     font-size: 0.875rem;
     cursor: pointer;
-    text-decoration: underline;
+    text-decoration: none;
     transition: color 0.2s;
 
     &:hover {
-      color: #764ba2;
+      color: var(--wa-green-light);
+      text-decoration: underline;
     }
   }
 }

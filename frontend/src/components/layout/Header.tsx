@@ -43,26 +43,27 @@ export const Header = () => {
               <button
                 className={styles.searchBtn}
                 onClick={handleCreateConversation}
+                disabled={!searchUsername.trim()}
               >
-                Enviar
+                ✓
               </button>
             </div>
           )}
           <button
             className={styles.newChatBtn}
             onClick={() => setShowUserSearch(!showUserSearch)}
+            title={showUserSearch ? 'Cancelar' : 'Nuevo chat'}
           >
-            {showUserSearch ? 'Cancelar' : '+ Nuevo chat'}
+            {showUserSearch ? '✕' : '+'}
           </button>
         </div>
 
         <div className={styles.userSection}>
-          <span className={styles.username}>
-            {user?.username}
-          </span>
+          <span className={styles.username}>{user?.username}</span>
           <button
             className={styles.logoutBtn}
             onClick={() => logout()}
+            title="Cerrar sesión"
           >
             Salir
           </button>
