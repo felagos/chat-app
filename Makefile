@@ -1,4 +1,4 @@
-.PHONY: help up down restart rebuild install dev-backend
+.PHONY: help up down restart rebuild install dev-backend dev-frontend
 
 help:
 	@echo "==============================================================="
@@ -11,9 +11,10 @@ help:
 	@echo "  make restart         -> Reiniciar servicios (down + up)"
 	@echo "  make rebuild         -> Re-build de los servicios"
 	@echo ""
-	@echo "[Backend Development]"
-	@echo "  make install         -> Instalar dependencias del backend"
+	@echo "[Development]"
+	@echo "  make install         -> Instalar dependencias del backend y frontend"
 	@echo "  make dev-backend     -> Ejecutar backend en modo desarrollo"
+	@echo "  make dev-frontend    -> Ejecutar frontend en modo desarrollo"
 	@echo ""
 
 # ========================================================
@@ -48,16 +49,22 @@ rebuild:
 	@echo "Para levantar los servicios ejecuta: make up"
 
 # ========================================================
-# Backend Development Commands
+# Development Commands
 # ========================================================
 
 install:
 	@echo "[INSTALL] Instalando dependencias del backend con Bun..."
 	cd backend && bun install
-	@echo "[OK] Dependencias instaladas"
+	@echo "[INSTALL] Instalando dependencias del frontend con Bun..."
+	cd frontend && bun install
+	@echo "[OK] Todas las dependencias instaladas"
 
 dev-backend:
 	@echo "[DEV] Iniciando backend en modo desarrollo..."
 	cd backend && bun run dev
+
+dev-frontend:
+	@echo "[DEV] Iniciando frontend en modo desarrollo..."
+	cd frontend && bun run dev
 
 .DEFAULT_GOAL := help
