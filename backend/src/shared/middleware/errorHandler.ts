@@ -1,9 +1,8 @@
-import { Response, NextFunction } from 'express';
-import { AuthRequest } from './auth.js';
+import { Response, NextFunction, Request } from 'express';
 
 export const errorHandler = (
   error: Error,
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ): void => {

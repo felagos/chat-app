@@ -1,0 +1,84 @@
+import amqp from 'amqplib';
+
+type AmqpConnection = Awaited<ReturnType<typeof amqp.connect>>;
+type AmqpChannel = Awaited<ReturnType<AmqpConnection['createChannel']>>;
+type AmqpMessage = amqp.ConsumeMessage | null;
+
+let connection: AmqpConnection | null = null;
+let channel: AmqpChannel | null = null;
+
+const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672';
+
+export const connectRabbitMQ = async (): Promise<void> => {
+  try {
+    connection = await amqp.connect(RABBITMQ_URL);
+    channel = await connection.createChannel();
+
+    await channel.assertExchange('chat', 'topic', { durable: true });
+    await channel.assertQueue('messages.queue', { durable: true });
+    await channel.assertQueue('notifications.queue', { durable: true });
+
+    console.log('✅ Connected to RabbitMQ');
+  } catch (error) {
+    console.error('❌ Failed to connect to RabbitMQ:', error);
+    throw error;
+  }
+};
+
+export const getChannel = (): AmqpChannel => {
+  if (!channel) {
+    throw new Error('RabbitMQ channel is not initialized');
+  }
+  return channel;
+};
+
+export const publishMessage = async (
+  exchangeName: string,
+  routingKey: string,
+  message: Record<string, unknown>
+): Promise<void> => {
+  try {
+    const ch = getChannel();
+    ch.publish(
+      exchangeName,
+      routingKey,
+      Buffer.from(JSON.stringify(message)),
+      { persistent: true }
+    );
+  } catch (error) {
+    console.error('Error publishing message:', error);
+    throw error;
+  }
+};
+
+export const consumeMessages = async (
+  queueName: string,
+  callback: (msg: AmqpMessage) => Promise<void>
+): Promise<void> => {
+  try {
+    const ch = getChannel();
+    await ch.consume(queueName, async (msg: AmqpMessage) => {
+      if (msg) {
+        await callback(msg);
+        ch.ack(msg);
+      }
+    });
+  } catch (error) {
+    console.error('Error consuming messages:', error);
+    throw error;
+  }
+};
+
+export const closeRabbitMQ = async (): Promise<void> => {
+  try {
+    if (channel) {
+      await channel.close();
+    }
+    if (connection) {
+      await connection.close();
+    }
+    console.log('RabbitMQ connection closed');
+  } catch (error) {
+    console.error('Error closing RabbitMQ:', error);
+  }
+};

@@ -1,0 +1,3 @@
+[install]
+# For faster installs
+registry = "https://registry.npmjs.org/"

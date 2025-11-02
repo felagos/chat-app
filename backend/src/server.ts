@@ -4,13 +4,12 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 
-import { setupSocketIO } from './gateway/socket.js';
-import { connectRabbitMQ } from './shared/services/rabbitmq.js';
-import { startMessageConsumer, startNotificationConsumer } from './shared/services/messageConsumer.js';
-import { startSessionCleanupInterval } from './shared/services/pushNotification.js';
-import authRoutes from './modules/auth/routes.js';
-import chatRoutes from './modules/chat/routes.js';
-import { errorHandler } from './shared/middleware/errorHandler.js';
+import { setupSocketIO } from './gateway/socket';
+import { startSessionCleanupInterval } from './shared/services/pushNotification';
+import { checkMessageQueueServiceHealth } from './shared/services/messageQueueClient';
+import authRoutes from './modules/auth/routes';
+import chatRoutes from './modules/chat/routes';
+import { errorHandler } from './shared/middleware/errorHandler';
 
 dotenv.config();
 
@@ -44,32 +43,43 @@ setupSocketIO(io);
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+app.get('/health', async (req, res) => {
+  try {
+    const mqHealthy = await checkMessageQueueServiceHealth();
+    res.json({ 
+      status: 'ok',
+      messageQueueService: mqHealthy ? 'healthy' : 'unhealthy',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.json({ 
+      status: 'ok',
+      messageQueueService: 'unreachable',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+app.get('/api/status', async (req, res) => {
+  try {
+    const mqHealthy = await checkMessageQueueServiceHealth();
+    res.json({
+      backend: 'running',
+      messageQueueService: mqHealthy ? 'healthy' : 'unhealthy',
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to get status',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 });
 
 app.use(errorHandler);
 
-// Initialize RabbitMQ with retries (non-blocking)
-const initializeRabbitMQ = async (maxRetries = 5, delayMs = 2000) => {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      await connectRabbitMQ();
-      await startMessageConsumer();
-      await startNotificationConsumer();
-      console.log('✅ RabbitMQ services initialized');
-      return;
-    } catch (error) {
-      console.warn(`⚠️  Attempt ${i + 1}/${maxRetries} failed to connect to RabbitMQ, retrying in ${delayMs}ms...`);
-      if (i < maxRetries - 1) {
-        await new Promise(resolve => setTimeout(resolve, delayMs));
-      }
-    }
-  }
-  console.warn('❌ Failed to initialize RabbitMQ after retries, continuing without message queue...');
-};
-
-// Start server first, initialize RabbitMQ in background
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
 httpServer.listen(PORT, () => {
@@ -78,11 +88,6 @@ httpServer.listen(PORT, () => {
   // Iniciar limpieza de sesiones expiradas
   startSessionCleanupInterval();
   console.log('✅ Session cleanup interval started');
-});
-
-// Initialize RabbitMQ asynchronously
-initializeRabbitMQ().catch(err => {
-  console.error('Error during RabbitMQ initialization:', err);
 });
 
 process.on('SIGTERM', () => {

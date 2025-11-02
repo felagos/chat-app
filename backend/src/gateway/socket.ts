@@ -1,13 +1,10 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import { authenticate } from '../shared/middleware/auth.js';
-import { publishMessage } from '../shared/services/rabbitmq.js';
-import { WebSocketEvent } from '../shared/types/websocket.js';
+import { publishMessage } from '../shared/services/messageQueueClient';
+import { WebSocketEvent } from '../shared/types/websocket';
 import {
   markUserAsActive,
-  markUserAsInactive,
-  isUserActive,
-  sendMultiChannelNotification
-} from '../shared/services/pushNotification.js';
+  markUserAsInactive
+} from '../shared/services/pushNotification';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -45,6 +42,8 @@ export const setupSocketIO = (io: SocketIOServer): void => {
 
     socket.on(WebSocketEvent.MESSAGE_SEND, async (data: { conversationId: string; content: string }) => {
       try {
+        console.log(`📨 [${userId}] Sending message to conversation ${data.conversationId}`);
+        
         await publishMessage('chat', 'message.new', {
           conversationId: data.conversationId,
           userId,
@@ -58,8 +57,14 @@ export const setupSocketIO = (io: SocketIOServer): void => {
           content: data.content,
           timestamp: Date.now()
         });
+        
+        console.log(`✅ [${userId}] Message sent successfully`);
       } catch (error) {
-        socket.emit(WebSocketEvent.ERROR, { message: 'Failed to send message' });
+        console.error(`❌ [${userId}] Failed to send message:`, error);
+        socket.emit(WebSocketEvent.ERROR, { 
+          message: 'Failed to send message',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        });
       }
     });
 
