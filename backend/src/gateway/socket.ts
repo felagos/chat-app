@@ -37,7 +37,6 @@ export const setupSocketIO = (io: SocketIOServer): void => {
     const userId = socket.userId;
     console.log(`✅ User ${userId} connected via WebSocket`);
 
-    // Marcar usuario como activo
     markUserAsActive(userId!, socket.id);
 
     socket.join(`user:${userId}`);
