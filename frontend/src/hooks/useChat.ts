@@ -4,7 +4,6 @@ import { useChatStore } from '../store/chatStore';
 import { useAuthStore } from '../store/authStore';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
-import type { CreateMessagePayload, Message } from '../types';
 
 export const useChat = () => {
   const token = useAuthStore((state) => state.token);
@@ -20,29 +19,11 @@ export const useChat = () => {
     : [];
 
   const sendMessage = useCallback(
-    (content: string, type: 'text' | 'image' | 'video' | 'file' = 'text') => {
+    (content: string) => {
       if (!activeConversationId || !token) return;
 
-      const payload: CreateMessagePayload = {
-        conversationId: activeConversationId,
-        content,
-        type,
-      };
-
-      // Convert payload to Message type
-      const message: Message = {
-        id: `temp-${Date.now()}`,
-        conversationId: activeConversationId,
-        senderId: useAuthStore.getState().user?.id || '',
-        content,
-        type,
-        mediaUrl: payload.mediaUrl,
-        timestamp: new Date(),
-        status: 'sent',
-        readBy: [],
-      };
-
-      socketService.sendMessage(message);
+      // Send message via socket
+      socketService.sendMessage(activeConversationId, content);
     },
     [activeConversationId, token]
   );
@@ -67,7 +48,11 @@ export const useChat = () => {
   const sendTyping = useCallback(
     (isTyping: boolean) => {
       if (!activeConversationId) return;
-      socketService.sendTyping(activeConversationId, isTyping);
+      if (isTyping) {
+        socketService.startTyping(activeConversationId);
+      } else {
+        socketService.stopTyping(activeConversationId);
+      }
     },
     [activeConversationId]
   );

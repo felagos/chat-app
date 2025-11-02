@@ -1,15 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import { ENV } from './env';
-import type { Message, Conversation } from '../types';
-
-// Event payload types
-export interface SocketEvents {
-  new_message: Message;
-  message_delivered: { messageId: string };
-  typing_received: { conversationId: string; userId: string; isTyping: boolean };
-  presence_update: { userId: string; status: string };
-  conversation_created: Conversation;
-}
+import { WebSocketEvent } from '../types/websocket';
+import type { WebSocketPayloads } from '../types/websocket';
 
 class SocketService {
   private socket: Socket | null = null;
@@ -26,15 +18,15 @@ class SocketService {
       reconnectionAttempts: 5,
     });
 
-    this.socket.on('connect', () => {
+    this.socket.on(WebSocketEvent.CONNECT, () => {
       console.log('✅ WebSocket conectado');
     });
 
-    this.socket.on('disconnect', () => {
+    this.socket.on(WebSocketEvent.DISCONNECT, () => {
       console.log('❌ WebSocket desconectado');
     });
 
-    this.socket.on('connect_error', (error: Error) => {
+    this.socket.on(WebSocketEvent.CONNECT_ERROR, (error: Error) => {
       console.error('❌ Error de conexión:', error);
     });
 
@@ -46,29 +38,39 @@ class SocketService {
     this.socket = null;
   }
 
-  emit<K extends keyof SocketEvents>(event: K, data: SocketEvents[K]): void {
+  emit<K extends keyof WebSocketPayloads>(event: K, data: WebSocketPayloads[K]): void {
     this.socket?.emit(event, data);
   }
 
-  // Specific method for send_message which expects Message type
-  sendMessage(message: Message): void {
-    this.socket?.emit('send_message', message);
+  // Send message to backend
+  sendMessage(conversationId: string, content: string): void {
+    this.socket?.emit(WebSocketEvent.MESSAGE_SEND, { conversationId, content });
   }
 
-  // Specific method for typing with different payload than received typing
-  sendTyping(conversationId: string, isTyping: boolean): void {
-    this.socket?.emit('typing', { conversationId, isTyping });
+  // Start typing notification
+  startTyping(conversationId: string): void {
+    this.socket?.emit(WebSocketEvent.TYPING_START, { conversationId });
   }
 
-  on<K extends keyof SocketEvents>(event: K, callback: (data: SocketEvents[K]) => void): void {
+  // Stop typing notification
+  stopTyping(conversationId: string): void {
+    this.socket?.emit(WebSocketEvent.TYPING_STOP, { conversationId });
+  }
+
+  on<K extends keyof WebSocketPayloads>(event: K, callback: (data: WebSocketPayloads[K]) => void): void {
     this.socket?.on(event as string, (data: unknown) => {
-      callback(data as SocketEvents[K]);
+      callback(data as WebSocketPayloads[K]);
     });
   }
 
-  // Specific listener for typing_received to avoid confusion
-  onTyping(callback: (data: { conversationId: string; userId: string; isTyping: boolean }) => void): void {
-    this.socket?.on('typing_received', callback);
+  // Listener for user typing
+  onUserTyping(callback: (data: WebSocketPayloads[typeof WebSocketEvent.USER_TYPING]) => void): void {
+    this.socket?.on(WebSocketEvent.USER_TYPING, callback);
+  }
+
+  // Listener for user stopped typing
+  onUserStoppedTyping(callback: (data: WebSocketPayloads[typeof WebSocketEvent.USER_STOPPED_TYPING]) => void): void {
+    this.socket?.on(WebSocketEvent.USER_STOPPED_TYPING, callback);
   }
 
   off(event: string): void {

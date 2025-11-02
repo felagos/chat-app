@@ -22,7 +22,7 @@ export const MessageInput = () => {
 
   const handleSend = () => {
     if (message.trim()) {
-      sendMessage(message, 'text');
+      sendMessage(message);
       setMessage('');
       setIsTyping(false);
       sendTyping(false);

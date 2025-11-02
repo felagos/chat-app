@@ -1,6 +1,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { authenticate } from '../shared/middleware/auth.js';
 import { publishMessage } from '../shared/services/rabbitmq.js';
+import { WebSocketEvent } from '../shared/types/websocket.js';
 import {
   markUserAsActive,
   markUserAsInactive,
@@ -41,9 +42,9 @@ export const setupSocketIO = (io: SocketIOServer): void => {
 
     socket.join(`user:${userId}`);
 
-    io.emit('user:online', { userId, timestamp: Date.now() });
+    io.emit(WebSocketEvent.USER_ONLINE, { userId, timestamp: Date.now() });
 
-    socket.on('message:send', async (data: { conversationId: string; content: string }) => {
+    socket.on(WebSocketEvent.MESSAGE_SEND, async (data: { conversationId: string; content: string }) => {
       try {
         await publishMessage('chat', 'message.new', {
           conversationId: data.conversationId,
@@ -52,40 +53,40 @@ export const setupSocketIO = (io: SocketIOServer): void => {
           timestamp: Date.now()
         });
 
-        socket.to(`conversation:${data.conversationId}`).emit('message:received', {
+        socket.to(`conversation:${data.conversationId}`).emit(WebSocketEvent.MESSAGE_RECEIVED, {
           conversationId: data.conversationId,
           userId,
           content: data.content,
           timestamp: Date.now()
         });
       } catch (error) {
-        socket.emit('error', { message: 'Failed to send message' });
+        socket.emit(WebSocketEvent.ERROR, { message: 'Failed to send message' });
       }
     });
 
-    socket.on('typing:start', (data: { conversationId: string }) => {
-      socket.to(`conversation:${data.conversationId}`).emit('user:typing', { userId });
+    socket.on(WebSocketEvent.TYPING_START, (data: { conversationId: string }) => {
+      socket.to(`conversation:${data.conversationId}`).emit(WebSocketEvent.USER_TYPING, { userId, conversationId: data.conversationId });
     });
 
-    socket.on('typing:stop', (data: { conversationId: string }) => {
-      socket.to(`conversation:${data.conversationId}`).emit('user:stopped-typing', { userId });
+    socket.on(WebSocketEvent.TYPING_STOP, (data: { conversationId: string }) => {
+      socket.to(`conversation:${data.conversationId}`).emit(WebSocketEvent.USER_STOPPED_TYPING, { userId, conversationId: data.conversationId });
     });
 
-    socket.on('conversation:join', (data: { conversationId: string }) => {
+    socket.on(WebSocketEvent.CONVERSATION_JOIN, (data: { conversationId: string }) => {
       socket.join(`conversation:${data.conversationId}`);
-      socket.to(`conversation:${data.conversationId}`).emit('user:joined', { userId });
+      socket.to(`conversation:${data.conversationId}`).emit(WebSocketEvent.USER_JOINED, { userId });
     });
 
-    socket.on('conversation:leave', (data: { conversationId: string }) => {
+    socket.on(WebSocketEvent.CONVERSATION_LEAVE, (data: { conversationId: string }) => {
       socket.leave(`conversation:${data.conversationId}`);
-      socket.to(`conversation:${data.conversationId}`).emit('user:left', { userId });
+      socket.to(`conversation:${data.conversationId}`).emit(WebSocketEvent.USER_LEFT, { userId });
     });
 
-    socket.on('disconnect', () => {
+    socket.on(WebSocketEvent.DISCONNECT, () => {
       console.log(`❌ User ${userId} disconnected`);
       // Marcar usuario como inactivo
       markUserAsInactive(userId!);
-      io.emit('user:offline', { userId, timestamp: Date.now() });
+      io.emit(WebSocketEvent.USER_OFFLINE, { userId, timestamp: Date.now() });
     });
   });
 };

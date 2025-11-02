@@ -2,42 +2,38 @@ import { useEffect } from 'react';
 import { socketService } from '../lib/socket';
 import { useAuthStore } from '../store/authStore';
 import { useChatStore } from '../store/chatStore';
-import type { Message, Conversation } from '../types';
+import { WebSocketEvent } from '../types/websocket';
+import type { Message } from '../types';
 
 export const useSocket = () => {
   const token = useAuthStore((state) => state.token);
   const userId = useAuthStore((state) => state.user?.id);
-  const { addMessage, setTyping, addConversation } = useChatStore();
+  const { addMessage, setTyping } = useChatStore();
 
   useEffect(() => {
     if (!token || !userId) return;
 
     socketService.connect(token, userId);
 
-    socketService.on('new_message', (message: Message) => {
+    // Listen for new messages
+    socketService.on(WebSocketEvent.MESSAGE_RECEIVED, (message: Message) => {
       addMessage(message);
     });
 
-    socketService.on('message_delivered', (data: { messageId: string }) => {
-      console.log('Mensaje entregado:', data.messageId);
+    // Listen for user typing
+    socketService.onUserTyping((data: { userId: string; conversationId: string }) => {
+      setTyping(data.conversationId, data.userId, true);
     });
 
-    socketService.onTyping((data: { conversationId: string; userId: string; isTyping: boolean }) => {
-      setTyping(data.conversationId, data.userId, data.isTyping);
-    });
-
-    socketService.on('presence_update', (data: { userId: string; status: string }) => {
-      console.log('Actualización de presencia:', data);
-    });
-
-    socketService.on('conversation_created', (conversation: Conversation) => {
-      addConversation(conversation);
+    // Listen for user stopped typing
+    socketService.onUserStoppedTyping((data: { userId: string; conversationId: string }) => {
+      setTyping(data.conversationId, data.userId, false);
     });
 
     return () => {
       socketService.disconnect();
     };
-  }, [token, userId, addMessage, setTyping, addConversation]);
+  }, [token, userId, addMessage, setTyping]);
 
   return socketService;
 };
