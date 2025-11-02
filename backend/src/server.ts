@@ -7,6 +7,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { setupSocketIO } from './gateway/socket.js';
 import { connectRabbitMQ } from './shared/services/rabbitmq.js';
 import { startMessageConsumer, startNotificationConsumer } from './shared/services/messageConsumer.js';
+import { startSessionCleanupInterval } from './shared/services/pushNotification.js';
 import authRoutes from './modules/auth/routes.js';
 import chatRoutes from './modules/chat/routes.js';
 import { errorHandler } from './shared/middleware/errorHandler.js';
@@ -73,6 +74,10 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 
 httpServer.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
+  
+  // Iniciar limpieza de sesiones expiradas
+  startSessionCleanupInterval();
+  console.log('✅ Session cleanup interval started');
 });
 
 // Initialize RabbitMQ asynchronously

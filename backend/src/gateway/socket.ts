@@ -1,6 +1,12 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { authenticate } from '../shared/middleware/auth.js';
 import { publishMessage } from '../shared/services/rabbitmq.js';
+import {
+  markUserAsActive,
+  markUserAsInactive,
+  isUserActive,
+  sendMultiChannelNotification
+} from '../shared/services/pushNotification.js';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -29,6 +35,9 @@ export const setupSocketIO = (io: SocketIOServer): void => {
   io.on('connection', (socket: AuthenticatedSocket) => {
     const userId = socket.userId;
     console.log(`✅ User ${userId} connected via WebSocket`);
+
+    // Marcar usuario como activo
+    markUserAsActive(userId!, socket.id);
 
     socket.join(`user:${userId}`);
 
@@ -74,6 +83,8 @@ export const setupSocketIO = (io: SocketIOServer): void => {
 
     socket.on('disconnect', () => {
       console.log(`❌ User ${userId} disconnected`);
+      // Marcar usuario como inactivo
+      markUserAsInactive(userId!);
       io.emit('user:offline', { userId, timestamp: Date.now() });
     });
   });
