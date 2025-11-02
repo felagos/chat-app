@@ -47,35 +47,43 @@ app.use('/api/users', usersRoutes);
 app.get('/health', async (req, res) => {
   try {
     const mqHealthy = await checkMessageQueueServiceHealth();
-    res.json({ 
+    const response = {
       status: 'ok',
       messageQueueService: mqHealthy ? 'healthy' : 'unhealthy',
       timestamp: new Date().toISOString()
-    });
+    };
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(response, null, 2));
   } catch (error) {
-    res.json({ 
+    const response = {
       status: 'ok',
       messageQueueService: 'unreachable',
       timestamp: new Date().toISOString()
-    });
+    };
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(response, null, 2));
   }
 });
 
 app.get('/api/status', async (req, res) => {
   try {
     const mqHealthy = await checkMessageQueueServiceHealth();
-    res.json({
+    const response = {
       backend: 'running',
       messageQueueService: mqHealthy ? 'healthy' : 'unhealthy',
       uptime: process.uptime(),
       memory: process.memoryUsage(),
       timestamp: new Date().toISOString()
-    });
+    };
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(response, null, 2));
   } catch (error) {
-    res.status(500).json({
+    const response = {
       error: 'Failed to get status',
       details: error instanceof Error ? error.message : 'Unknown error'
-    });
+    };
+    res.status(500).setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(response, null, 2));
   }
 });
 
