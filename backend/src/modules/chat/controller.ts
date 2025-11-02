@@ -39,11 +39,51 @@ export const getConversations = async (req: AuthRequest, res: Response): Promise
 export const createConversation = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
-    const { name, type, participantIds } = req.body;
+    const { name, type, participantIds, username } = req.body;
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
+    }
+
+    let finalParticipantIds = participantIds;
+
+    // Si viene un username, buscar el usuario
+    if (username && !participantIds) {
+      const targetUser = await prisma.user.findUnique({
+        where: { username }
+      });
+
+      if (!targetUser) {
+        res.status(404).json({ error: 'Usuario no encontrado' });
+        return;
+      }
+
+      finalParticipantIds = [targetUser.id];
+    }
+
+    // Verificar si ya existe una conversación privada con estos participantes
+    if (!name && type !== 'group') {
+      const existingConversation = await prisma.conversation.findFirst({
+        where: {
+          type: 'private',
+          participants: {
+            every: {
+              id: {
+                in: [userId, ...finalParticipantIds]
+              }
+            }
+          }
+        },
+        include: {
+          participants: true
+        }
+      });
+
+      if (existingConversation && existingConversation.participants.length === 2) {
+        res.status(200).json(existingConversation);
+        return;
+      }
     }
 
     const conversation: ConversationWithParticipants = await prisma.conversation.create({
@@ -53,7 +93,7 @@ export const createConversation = async (req: AuthRequest, res: Response): Promi
         participants: {
           connect: [
             { id: userId },
-            ...participantIds.map((id: string) => ({ id }))
+            ...finalParticipantIds.map((id: string) => ({ id }))
           ]
         }
       },

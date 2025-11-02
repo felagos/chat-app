@@ -41,7 +41,9 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
 
   backend:
-    build: .
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     environment:
@@ -59,7 +61,7 @@ services:
       - redis
       - rabbitmq
     volumes:
-      - .:/app
+      - ./backend:/app
       - /app/node_modules
 
 volumes:

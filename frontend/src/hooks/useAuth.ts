@@ -1,10 +1,12 @@
 import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import { useMutation } from '@tanstack/react-query';
 import type { AuthResponse } from '../types';
 
 export const useAuth = () => {
+  const navigate = useNavigate();
   const { user, token, login, logout } = useAuthStore();
 
   const loginMutation = useMutation({
@@ -13,6 +15,7 @@ export const useAuth = () => {
     },
     onSuccess: (data: AuthResponse) => {
       login(data.token, data.user);
+      navigate('/chat');
     },
   });
 
@@ -26,6 +29,7 @@ export const useAuth = () => {
     },
     onSuccess: (data: AuthResponse) => {
       login(data.token, data.user);
+      navigate('/chat');
     },
   });
 

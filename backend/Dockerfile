@@ -1,13 +1,16 @@
-FROM oven/bun:latest as base
+FROM oven/bun:latest
 
 WORKDIR /app
+
+# Install OpenSSL for Prisma
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package*.json ./
 COPY bunfig.toml* ./
 
-# Install dependencies (only production)
-RUN bun install --production
+# Install dependencies
+RUN bun install
 
 # Copy source code
 COPY . .
@@ -17,4 +20,5 @@ RUN bun run prisma:generate
 
 EXPOSE 3000
 
-CMD ["bun", "run", "start"]
+# Run TypeScript directly with bun
+CMD ["bun", "run", "src/server.ts"]

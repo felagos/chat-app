@@ -17,7 +17,11 @@ const app = express();
 const httpServer = createServer(app);
 
 app.use(cors({
-  origin: process.env.SOCKET_IO_CORS || 'http://localhost:3001',
+  origin: [
+    'http://localhost:3001', // Frontend production port
+    'http://localhost:5173', // Vite dev server
+    'http://localhost:3000'  // Alternative frontend port
+  ],
   credentials: true
 }));
 app.use(express.json());
@@ -25,7 +29,11 @@ app.use(express.urlencoded({ extended: true }));
 
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: process.env.SOCKET_IO_CORS || 'http://localhost:3001',
+    origin: [
+      'http://localhost:3001', // Frontend production port
+      'http://localhost:5173', // Vite dev server
+      'http://localhost:3000'  // Alternative frontend port
+    ],
     credentials: true
   }
 });
@@ -41,15 +49,35 @@ app.get('/health', (req, res) => {
 
 app.use(errorHandler);
 
-await connectRabbitMQ();
+// Initialize RabbitMQ with retries (non-blocking)
+const initializeRabbitMQ = async (maxRetries = 5, delayMs = 2000) => {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await connectRabbitMQ();
+      await startMessageConsumer();
+      await startNotificationConsumer();
+      console.log('✅ RabbitMQ services initialized');
+      return;
+    } catch (error) {
+      console.warn(`⚠️  Attempt ${i + 1}/${maxRetries} failed to connect to RabbitMQ, retrying in ${delayMs}ms...`);
+      if (i < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  console.warn('❌ Failed to initialize RabbitMQ after retries, continuing without message queue...');
+};
 
-await startMessageConsumer();
-await startNotificationConsumer();
-
+// Start server first, initialize RabbitMQ in background
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
 httpServer.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
+});
+
+// Initialize RabbitMQ asynchronously
+initializeRabbitMQ().catch(err => {
+  console.error('Error during RabbitMQ initialization:', err);
 });
 
 process.on('SIGTERM', () => {

@@ -6,12 +6,13 @@ import type { Message, Conversation } from '../types';
 
 export const useSocket = () => {
   const token = useAuthStore((state) => state.token);
+  const userId = useAuthStore((state) => state.user?.id);
   const { addMessage, setTyping, addConversation } = useChatStore();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !userId) return;
 
-    socketService.connect(token);
+    socketService.connect(token, userId);
 
     socketService.on('new_message', (message: Message) => {
       addMessage(message);
@@ -21,7 +22,7 @@ export const useSocket = () => {
       console.log('Mensaje entregado:', data.messageId);
     });
 
-    socketService.on('typing', (data: { conversationId: string; userId: string; isTyping: boolean }) => {
+    socketService.onTyping((data: { conversationId: string; userId: string; isTyping: boolean }) => {
       setTyping(data.conversationId, data.userId, data.isTyping);
     });
 
@@ -36,7 +37,7 @@ export const useSocket = () => {
     return () => {
       socketService.disconnect();
     };
-  }, [token, addMessage, setTyping, addConversation]);
+  }, [token, userId, addMessage, setTyping, addConversation]);
 
   return socketService;
 };

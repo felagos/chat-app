@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../../hooks/useSocket';
+import { useLoadConversations } from '../../hooks/useLoadConversations';
 import { useAuthStore } from '../../store/authStore';
 import { useChatStore } from '../../store/chatStore';
 import { Header } from '../../components/layout/Header';
@@ -15,6 +16,7 @@ export default function ChatPage() {
   const { activeConversationId } = useChatStore();
 
   useSocket();
+  useLoadConversations();
 
   useEffect(() => {
     if (!isAuthenticated) {

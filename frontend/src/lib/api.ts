@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
+import { ENV } from './env';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,7 +14,7 @@ export const queryClient = new QueryClient({
   },
 });
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = ENV.API_URL;
 
 type FetchOptions = {
   token?: string;

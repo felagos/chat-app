@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { apiClient } from '../lib/api';
+import { useAuthStore } from './authStore';
 import type { Message, Conversation } from '../types';
 
 interface ChatState {
@@ -16,6 +18,7 @@ interface ChatState {
   setActiveConversation: (id: string | null) => void;
   setTyping: (conversationId: string, userId: string, isTyping: boolean) => void;
   setLoading: (loading: boolean) => void;
+  createConversation: (username: string) => Promise<void>;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -81,4 +84,24 @@ export const useChatStore = create<ChatState>((set) => ({
     }),
 
   setLoading: (loading: boolean) => set({ loading }),
+
+  createConversation: async (username: string) => {
+    try {
+      const token = useAuthStore.getState().token;
+      if (!token) {
+        console.error('No authentication token');
+        return;
+      }
+      
+      const response = await apiClient.post('/chat', { username }, token);
+      const conversation = response;
+      
+      set((state) => ({
+        conversations: [conversation, ...state.conversations],
+        activeConversationId: conversation.id,
+      }));
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+    }
+  },
 }));
