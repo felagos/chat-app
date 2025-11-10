@@ -1,7 +1,10 @@
 import amqp, { Channel, Connection } from 'amqplib';
 
-let connection: Connection;
-let channel: Channel;
+type AmqpConnection = Awaited<ReturnType<typeof amqp.connect>>;
+type AmqpChannel = Awaited<ReturnType<AmqpConnection['createChannel']>>;
+
+let connection: AmqpConnection | null = null;
+let channel: AmqpChannel | null = null;
 
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672';
 
