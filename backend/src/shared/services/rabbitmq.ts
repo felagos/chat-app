@@ -47,24 +47,6 @@ export const publishMessage = async (
   }
 };
 
-export const consumeMessages = async (
-  queueName: string,
-  callback: (msg: amqp.ConsumeMessage | null) => Promise<void>
-): Promise<void> => {
-  try {
-    const ch = getChannel();
-    await ch.consume(queueName, async (msg) => {
-      if (msg) {
-        await callback(msg);
-        ch.ack(msg);
-      }
-    });
-  } catch (error) {
-    console.error('Error consuming messages:', error);
-    throw error;
-  }
-};
-
 export const closeRabbitMQ = async (): Promise<void> => {
   try {
     if (channel) await channel.close();

@@ -5,9 +5,9 @@ import dotenv from 'dotenv';
 import { connectRabbitMQ, closeRabbitMQ } from './services/rabbitmq';
 import {
   startMessageConsumer,
-  startNotificationConsumer
+  startNotificationConsumer,
+  resetConsumers
 } from './services/messageConsumer';
-import messagesRouter from './routes/messages';
 import healthRouter from './routes/health';
 import { createRateLimiter } from './middleware/rateLimiter';
 import { createCircuitBreaker } from './middleware/circuitBreaker';
@@ -51,7 +51,6 @@ app.use((req: Request, res: Response, next) => {
 });
 
 // Routes
-app.use('/api/messages', messagesRouter);
 app.use('/api/health', healthRouter);
 
 app.get('/health', (req: Request, res: Response) => {
@@ -99,17 +98,29 @@ const initializeRabbitMQ = async (maxRetries = 5, delayMs = 2000) => {
     try {
       await rabbitmqCircuitBreaker.execute(async () => {
         await connectRabbitMQ();
+      });
+
+      // Only start consumers after successful connection
+      try {
         await startMessageConsumer();
         await startNotificationConsumer();
-      });
-      console.log(`[${INSTANCE_ID}] ✅ RabbitMQ services initialized`);
+      } catch (consumerError) {
+        console.error('Error starting consumers:', consumerError);
+        throw consumerError;
+      }
+
+      console.log(`[${INSTANCE_ID}] ✅ RabbitMQ services initialized successfully`);
       return;
     } catch (error) {
       console.warn(
         `[${INSTANCE_ID}] ⚠️  Attempt ${i + 1}/${maxRetries} failed to connect to RabbitMQ, retrying in ${delayMs}ms...`,
         error
       );
+      
+      // Reset consumers on failure to avoid duplicate initialization
       if (i < maxRetries - 1) {
+        resetConsumers();
+        await closeRabbitMQ();
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }

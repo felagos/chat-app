@@ -1,5 +1,5 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import { publishMessage } from '../shared/services/messageQueueClient';
+import { publishMessage } from '../shared/services/rabbitmq';
 import { WebSocketEvent } from '../shared/types/websocket';
 import {
   markUserAsActive,

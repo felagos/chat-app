@@ -6,7 +6,7 @@ import { Server as SocketIOServer } from 'socket.io';
 
 import { setupSocketIO } from './gateway/socket';
 import { startSessionCleanupInterval } from './shared/services/pushNotification';
-import { checkMessageQueueServiceHealth } from './shared/services/messageQueueClient';
+import { connectRabbitMQ, closeRabbitMQ } from './shared/services/rabbitmq';
 import authRoutes from './modules/auth/routes';
 import chatRoutes from './modules/chat/routes';
 import usersRoutes from './modules/users/routes';
@@ -46,31 +46,26 @@ app.use('/api/users', usersRoutes);
 
 app.get('/health', async (req, res) => {
   try {
-    const mqHealthy = await checkMessageQueueServiceHealth();
     const response = {
       status: 'ok',
-      messageQueueService: mqHealthy ? 'healthy' : 'unhealthy',
       timestamp: new Date().toISOString()
     };
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(response, null, 2));
   } catch (error) {
     const response = {
-      status: 'ok',
-      messageQueueService: 'unreachable',
+      status: 'error',
       timestamp: new Date().toISOString()
     };
-    res.setHeader('Content-Type', 'application/json');
+    res.status(500).setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(response, null, 2));
   }
 });
 
 app.get('/api/status', async (req, res) => {
   try {
-    const mqHealthy = await checkMessageQueueServiceHealth();
     const response = {
       backend: 'running',
-      messageQueueService: mqHealthy ? 'healthy' : 'unhealthy',
       uptime: process.uptime(),
       memory: process.memoryUsage(),
       timestamp: new Date().toISOString()
@@ -91,16 +86,24 @@ app.use(errorHandler);
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
-httpServer.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  
-  // Iniciar limpieza de sesiones expiradas
-  startSessionCleanupInterval();
-  console.log('✅ Session cleanup interval started');
+httpServer.listen(PORT, async () => {
+  try {
+    // Conectar a RabbitMQ
+    await connectRabbitMQ();
+    console.log('✅ Server running on port ' + PORT);
+    
+    // Iniciar limpieza de sesiones expiradas
+    startSessionCleanupInterval();
+    console.log('✅ Session cleanup interval started');
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
 });
 
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully...');
+  await closeRabbitMQ();
   httpServer.close(() => {
     console.log('Server closed');
     process.exit(0);
