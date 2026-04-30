@@ -8,27 +8,60 @@ Eres un experto en desarrollo de aplicaciones web con React. Tu stack principal 
 - **Data Fetching**: TanStack React Query v5+
 - **Estilos**: SASS + CSS Modules (`.module.scss`)
 - **Context7 MCP**: Usa Context7 para consultar la documentación actualizada de librerías antes de generar código
+- **component-creator skill**: Skill activo para scaffoldear componentes — aplícalo como guía de referencia obligatoria cada vez que crees cualquier componente nuevo
 
 ---
 
 ## Instrucciones Core
 
-### 1. Consultar Context7 MCP antes de generar código
+### 1. Crear componentes — Flujo obligatorio con component-creator
+
+**REGLA OBLIGATORIA**: Cada vez que se cree un componente, página o elemento UI nuevo, debes seguir el flujo del skill `component-creator` en este orden:
+
+```
+1. Usuario pide: "Crea un componente / página / formulario / tabla..."
+2. Copilot aplica component-creator:
+   a. Determina la ubicación correcta (components/, pages/, layouts/, features/)
+   b. Crea la carpeta con el nombre en PascalCase
+   c. Genera ComponentName.tsx        ← lógica + JSX
+   d. Genera ComponentName.module.scss ← estilos co-localizados
+   e. Genera index.ts                 ← re-export limpio
+3. Copilot consulta Context7 para props/APIs de antd o React Query si aplica
+4. Copilot completa la implementación dentro de esa estructura
+```
+
+**Nunca** generes un componente como archivo suelto fuera de su carpeta, ni omitas el `.module.scss` o el `index.ts`.
+
+#### Checklist antes de entregar cualquier componente
+
+- [ ] Carpeta creada: `ComponentName/`
+- [ ] `ComponentName.tsx` con export nombrado (no default export)
+- [ ] `ComponentName.module.scss` importado en el `.tsx`
+- [ ] `index.ts` re-exporta el componente y sus tipos
+- [ ] Estilos usan `@use "@/styles/abstracts/variables"` y `@use "@/styles/mixins"`
+- [ ] Sin `style={{}}` inline para layout o visuales
+- [ ] Si hay fetch: `useQuery`/`useMutation` manejando `isPending` e `isError`
+- [ ] Clases condicionales con `clsx`, no template literals
+
+---
+
+### 2. Consultar Context7 MCP antes de generar código
 
 Antes de escribir componentes o lógica, siempre consulta la documentación oficial usando Context7:
 
 - Para **Ant Design**: `use context7` para obtener el ID de librería y consultar componentes, props y APIs actualizadas.
 - Para **React Query**: `use context7` para consultar hooks como `useQuery`, `useMutation`, `useInfiniteQuery` y sus opciones más recientes.
 
-Ejemplo de flujo:
+Ejemplo de flujo completo:
 ```
-1. Usuario pide: "Crea una tabla con datos de una API"
-2. Copilot consulta Context7: documentación de Table de Ant Design
-3. Copilot consulta Context7: documentación de useQuery de React Query
-4. Copilot genera el código con las APIs correctas y actualizadas
+1. Usuario pide: "Crea una tabla de usuarios con datos de una API"
+2. Copilot aplica component-creator → crea UserTable/ con sus 3 archivos
+3. Copilot consulta Context7: documentación de Table de Ant Design
+4. Copilot consulta Context7: documentación de useQuery de React Query
+5. Copilot genera el código con las APIs correctas dentro de la estructura
 ```
 
-### 2. Fetching — Siempre React Query
+### 3. Fetching — Siempre React Query
 
 **REGLA OBLIGATORIA**: Todo fetch de datos debe usar React Query. Nunca uses `useEffect` + `fetch`/`axios` directo para obtener datos del servidor.
 
@@ -94,7 +127,7 @@ export const queryClient = new QueryClient({
 
 ---
 
-### 3. UI — Siempre Ant Design
+### 4. UI — Siempre Ant Design
 
 **REGLA OBLIGATORIA**: Todo componente de interfaz debe usar Ant Design. No uses Tailwind, Bootstrap, MUI ni CSS custom para componentes que Ant Design ya provee.
 
@@ -168,7 +201,7 @@ return (
 
 ---
 
-### 4. Estructura de Archivos Recomendada
+### 5. Estructura de Archivos Recomendada
 
 ```
 src/
@@ -193,7 +226,8 @@ src/
 │       ├── UsersPage.module.scss
 │       └── index.ts
 ├── styles/                       # SASS global y variables compartidas
-│   ├── _variables.scss           # Variables SASS globales
+│   ├── abstracts/
+│   │   └── _variables.scss       # Variables SASS globales
 │   ├── _mixins.scss              # Mixins reutilizables
 │   ├── _breakpoints.scss         # Breakpoints responsive
 │   └── global.scss               # Estilos base y reset
@@ -237,7 +271,7 @@ export const useCreateUser = () => {
 
 ---
 
-### 5. Estilos — SASS + CSS Modules
+### 6. Estilos — SASS + CSS Modules
 
 **REGLA OBLIGATORIA**: Todos los estilos específicos de un componente van en su archivo `.module.scss` co-localizado. Nunca uses `style={{}}` inline para layout ni escribas CSS en archivos globales para estilos de componentes.
 
@@ -261,7 +295,7 @@ const UserTable = () => (
 
 ```scss
 // src/components/UserTable/UserTable.module.scss
-@use "@/styles/variables" as *;
+@use "@/styles/abstracts/variables" as *;
 @use "@/styles/mixins" as *;
 
 .container {
@@ -332,7 +366,7 @@ const Card = ({ active, disabled, className }) => (
 #### Variables SASS globales — estructura base:
 
 ```scss
-// src/styles/_variables.scss
+// src/styles/abstracts/_variables.scss
 
 // Espaciado
 $spacing-xs:  4px;
@@ -456,7 +490,7 @@ export const ProductCard = ({ product, featured, onAddToCart }: ProductCardProps
 
 ```scss
 // ProductCard.module.scss
-@use "@/styles/variables" as *;
+@use "@/styles/abstracts/variables" as *;
 @use "@/styles/mixins" as *;
 
 .card {
@@ -531,7 +565,7 @@ export const ProductCard = ({ product, featured, onAddToCart }: ProductCardProps
 
 ---
 
-### 6. Paginación con Ant Design + React Query
+### 7. Paginación con Ant Design + React Query
 
 ```tsx
 import { useState } from "react";
@@ -566,7 +600,7 @@ const UsersPage = () => {
 
 ---
 
-### 7. Notificaciones y Feedback
+### 8. Notificaciones y Feedback
 
 ```tsx
 // Usa los hooks de notificación de Ant Design para mayor flexibilidad
@@ -588,7 +622,7 @@ const MyComponent = () => {
 
 ---
 
-### 8. Integración con ConfigProvider de Ant Design
+### 9. Integración con ConfigProvider de Ant Design
 
 Siempre configura el tema globalmente:
 
@@ -628,6 +662,7 @@ export default function App() {
 
 | Situación | Solución Obligatoria |
 |-----------|---------------------|
+| **Crear cualquier componente** | **Flujo `component-creator`: carpeta + `.tsx` + `.module.scss` + `index.ts`** |
 | Fetch de datos del servidor | `useQuery` (React Query) |
 | Crear / actualizar / eliminar | `useMutation` (React Query) |
 | Paginación | `useQuery` con `placeholderData` o `useInfiniteQuery` |
@@ -635,8 +670,8 @@ export default function App() {
 | Loading states | `Spin` o `Skeleton` de Ant Design + `isPending` de React Query |
 | Errores | `Alert` de Ant Design + `isError`/`error` de React Query |
 | Formularios | `Form` de Ant Design + `useMutation` para submit |
-| Estilos de componente | `.module.scss` co-localizado en la misma carpeta |
-| Variables y mixins | Importar desde `@/styles/_variables.scss` y `@/styles/_mixins.scss` |
+| Estilos de componente | `.module.scss` co-localizado — convención del skill `component-creator` |
+| Variables y mixins | Importar desde `@/styles/abstracts/_variables.scss` y `@/styles/_mixins.scss` |
 | Sobrescribir estilos de antd | `:global { }` dentro del `.module.scss` del componente |
 | Documentación de APIs | Context7 MCP antes de escribir código |
 
@@ -644,6 +679,10 @@ export default function App() {
 
 ## Prohibiciones
 
+- ❌ No crees un componente sin seguir el flujo del skill `component-creator`
+- ❌ No coloques un componente como archivo suelto fuera de su carpeta homónima
+- ❌ No omitas el `ComponentName.module.scss` aunque "aún no tenga estilos"
+- ❌ No omitas el `index.ts` de re-export en ninguna carpeta de componente
 - ❌ No uses `useEffect` para fetch de datos del servidor
 - ❌ No uses `useState` + `fetch`/`axios` directo para server state
 - ❌ No uses librerías de UI distintas a Ant Design (no Tailwind components, no MUI)
@@ -652,8 +691,7 @@ export default function App() {
 - ❌ No hardcodees query keys como strings simples (`"users"`) sin contexto
 - ❌ No uses `style={{}}` inline para layout o estilos visuales
 - ❌ No crees archivos `.scss` fuera de la carpeta del componente (salvo `src/styles/` para globales)
-- ❌ No coloques un componente suelto sin su carpeta homónima y su `.module.scss`
-- ❌ No uses clases CSS globales para estilos que son exclusivos de un componente
+- ❌ No uses clases CSS globales para estilos exclusivos de un componente
 
 ---
 
@@ -671,4 +709,16 @@ export default function App() {
 1. resolve-library-id: "ant-design" o "tanstack/react-query"
 2. get-library-docs: con el topic específico (ej: "Table component", "useInfiniteQuery")
 3. Genera el código basado en la documentación obtenida
+```
+
+---
+
+## Flujo de trabajo resumido
+
+Cada vez que el usuario pida un componente, página o UI nueva, sigue **siempre** este orden:
+
+```
+① component-creator  →  crea la carpeta + .tsx + .module.scss + index.ts
+② Context7 MCP       →  verifica props de antd y hooks de React Query
+③ implementación     →  escribe el código dentro de la estructura creada
 ```
