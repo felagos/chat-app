@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import styles from '../../styles/components/MessageInput.module.scss';
-import { useChat } from '../../hooks/useChat';
+import { Input, Button, Tooltip } from 'antd';
+import { SendOutlined } from '@ant-design/icons';
+import { useChat } from '../../../hooks/useChat';
+import styles from './MessageInput.module.scss';
 
 export const MessageInput = () => {
   const [message, setMessage] = useState('');
@@ -18,22 +20,18 @@ export const MessageInput = () => {
       setIsTyping(false);
       sendTyping(false);
     }
-
-    // Auto-resize textarea
-    e.target.style.height = 'auto';
-    e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px';
   };
 
   const handleSend = () => {
     if (message.trim()) {
-      sendMessage(message);
+      sendMessage(message.trim());
       setMessage('');
       setIsTyping(false);
       sendTyping(false);
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -42,22 +40,24 @@ export const MessageInput = () => {
 
   return (
     <div className={styles.messageInput}>
-      <textarea
-        placeholder="Aa"
+      <Input.TextArea
+        placeholder="Escribe un mensaje..."
         value={message}
         onChange={handleChange}
-        onKeyPress={handleKeyPress}
-        className={styles.input}
-        rows={1}
+        onKeyDown={handleKeyDown}
+        autoSize={{ minRows: 1, maxRows: 4 }}
+        className={styles.textarea}
       />
-      <button
-        onClick={handleSend}
-        disabled={!message.trim()}
-        className={styles.button}
-        title="Enviar mensaje"
-      >
-        ➤
-      </button>
+      <Tooltip title="Enviar (Enter)">
+        <Button
+          type="primary"
+          shape="circle"
+          icon={<SendOutlined />}
+          onClick={handleSend}
+          disabled={!message.trim()}
+          className={styles.sendBtn}
+        />
+      </Tooltip>
     </div>
   );
 };

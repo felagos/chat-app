@@ -1,0 +1,64 @@
+@use "styles/abstracts/variables" as *;
+@use "styles/mixins" as *;
+
+.chatHeader {
+  @include flex-between;
+  padding: $spacing-sm $spacing-lg;
+  background: $color-bg-elevated;
+  border-bottom: 1px solid $color-border;
+  box-shadow: $shadow-sm;
+  flex-shrink: 0;
+  min-height: 60px;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  flex: 1;
+  min-width: 0;
+}
+
+.avatar {
+  background: linear-gradient(
+    135deg,
+    $color-primary-light,
+    $color-primary-lighter
+  ) !important;
+  font-weight: 600;
+  color: white !important;
+  flex-shrink: 0;
+}
+
+.details {
+  @include flex-column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  font-size: $font-size-md;
+  font-weight: 500;
+  color: $color-text-primary !important;
+
+  @include truncate;
+}
+
+.status {
+  font-size: $font-size-sm;
+  color: $color-primary-lighter !important;
+}
+
+.actions {
+  flex-shrink: 0;
+}
+
+.iconBtn {
+  color: $color-text-secondary !important;
+  border: none !important;
+
+  &:hover {
+    color: $color-primary !important;
+    background: $color-primary-bg !important;
+  }
+}

@@ -1,0 +1,33 @@
+@use "styles/abstracts/variables" as *;
+@use "styles/mixins" as *;
+
+.messageList {
+  flex: 1;
+  overflow-y: auto;
+  padding: $spacing-md $spacing-lg;
+  @include flex-column;
+  gap: $spacing-xs;
+  background: var(--wa-gray-light);
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $color-border;
+    border-radius: 2px;
+  }
+}
+
+.loading {
+  flex: 1;
+  @include flex-center;
+  background: var(--wa-gray-light);
+}
+
+.empty {
+  flex: 1;
+  @include flex-center;
+  flex-direction: column;
+  color: $color-text-secondary;
+}

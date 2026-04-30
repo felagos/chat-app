@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Layout, Spin, Empty } from 'antd';
+import { MessageOutlined } from '@ant-design/icons';
 import { useSocket } from '../../hooks/useSocket';
 import { useLoadConversations } from '../../hooks/useLoadConversations';
 import { useAuthStore } from '../../store/authStore';
@@ -10,6 +12,8 @@ import { ChatList } from '../../components/chat/ChatList';
 import { MessageList } from '../../components/chat/MessageList';
 import { MessageInput } from '../../components/chat/MessageInput';
 import styles from '../../styles/pages/ChatPage.module.scss';
+
+const { Content } = Layout;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -26,13 +30,17 @@ export default function ChatPage() {
   }, [isAuthenticated, navigate]);
 
   if (!isAuthenticated) {
-    return <div>Cargando...</div>;
+    return (
+      <div className={styles.loading}>
+        <Spin size="large" />
+      </div>
+    );
   }
 
   return (
-    <div className={styles.chatPage}>
+    <Layout className={styles.chatPage}>
       <Header />
-      <div className={styles.container}>
+      <Content className={styles.container}>
         <ChatList />
         <div className={styles.chatArea}>
           {activeConversationId ? (
@@ -43,13 +51,21 @@ export default function ChatPage() {
             </>
           ) : (
             <div className={styles.emptyState}>
-              <div className={styles.icon}>💬</div>
-              <h2>Selecciona una conversación</h2>
-              <p>Elige un chat de la lista para empezar a conversar</p>
+              <Empty
+                image={<MessageOutlined className={styles.emptyIcon} />}
+                description={
+                  <span>
+                    <strong>Selecciona una conversación</strong>
+                    <br />
+                    Elige un chat de la lista para empezar a conversar
+                  </span>
+                }
+              />
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </Content>
+    </Layout>
   );
 }
+

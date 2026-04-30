@@ -1,0 +1,37 @@
+@use "styles/abstracts/variables" as *;
+@use "styles/mixins" as *;
+
+.container {
+  width: 100%;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: $spacing-lg !important;
+  color: $color-text-primary !important;
+}
+
+.alert {
+  margin-bottom: $spacing-md;
+}
+
+.submitItem {
+  margin-top: $spacing-md;
+  margin-bottom: 0;
+}
+
+.link {
+  display: block;
+  text-align: center;
+  margin-top: $spacing-md;
+  color: $color-text-secondary;
+
+  a {
+    color: $color-primary;
+    font-weight: 500;
+
+    &:hover {
+      color: $color-primary-light;
+    }
+  }
+}

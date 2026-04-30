@@ -1,0 +1,40 @@
+@use "styles/abstracts/variables" as *;
+@use "styles/mixins" as *;
+
+.messageInput {
+  display: flex;
+  align-items: flex-end;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background: $color-bg-elevated;
+  border-top: 1px solid $color-border;
+  flex-shrink: 0;
+}
+
+.textarea {
+  flex: 1;
+  border-radius: $border-radius-xl !important;
+  resize: none;
+
+  :global {
+    .ant-input {
+      border-radius: $border-radius-xl;
+      padding: $spacing-sm $spacing-md;
+    }
+  }
+}
+
+.sendBtn {
+  flex-shrink: 0;
+  background: $color-primary !important;
+  border-color: $color-primary !important;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-light !important;
+    border-color: $color-primary-light !important;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
