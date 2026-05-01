@@ -83,6 +83,11 @@ class SocketService {
     this.socket?.on(WebSocketEvent.USER_STOPPED_TYPING, callback);
   }
 
+  // Listener for new conversation created
+  onConversationCreated(callback: (data: WebSocketPayloads[typeof WebSocketEvent.CONVERSATION_CREATED]) => void): void {
+    this.socket?.on(WebSocketEvent.CONVERSATION_CREATED, callback);
+  }
+
   off(event: string): void {
     this.socket?.off(event);
   }

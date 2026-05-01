@@ -5,6 +5,7 @@ import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 
 import { setupSocketIO } from './gateway/socket';
+import { setIOInstance } from './config/socketio';
 import { startSessionCleanupInterval } from './shared/services/pushNotification';
 import { connectRabbitMQ, closeRabbitMQ } from './shared/services/rabbitmq';
 import authRoutes from './modules/auth/routes';
@@ -38,6 +39,7 @@ const io = new SocketIOServer(httpServer, {
   transports: ['websocket', 'polling']
 });
 
+setIOInstance(io);
 setupSocketIO(io);
 
 app.use('/api/auth', authRoutes);

@@ -3,12 +3,12 @@ import { socketService } from '../lib/socket';
 import { useAuthStore } from '../store/authStore';
 import { useChatStore } from '../store/chatStore';
 import { WebSocketEvent } from '../types/websocket';
-import type { Message } from '../types';
+import type { Message, Conversation } from '../types';
 
 export const useSocket = () => {
   const token = useAuthStore((state) => state.token);
   const userId = useAuthStore((state) => state.user?.id);
-  const { addMessage, setTyping, setUserOnline, setUserOffline } = useChatStore();
+  const { addMessage, addConversation, setTyping, setUserOnline, setUserOffline } = useChatStore();
 
   useEffect(() => {
     if (!token || !userId) return;
@@ -18,6 +18,20 @@ export const useSocket = () => {
     // Listen for new messages
     socketService.on(WebSocketEvent.MESSAGE_RECEIVED, (message: Message) => {
       addMessage(message);
+    });
+
+    // Listen for new conversations
+    socketService.onConversationCreated((data) => {
+      const conversation: Conversation = {
+        id: data.id,
+        type: data.type,
+        participants: data.participants,
+        name: data.name,
+        avatar: data.avatar,
+        unreadCount: 0,
+        createdAt: new Date(data.createdAt),
+      };
+      addConversation(conversation);
     });
 
     // Listen for user typing
@@ -42,7 +56,7 @@ export const useSocket = () => {
     return () => {
       socketService.disconnect();
     };
-  }, [token, userId, addMessage, setTyping]);
+  }, [token, userId, addMessage, addConversation, setTyping]);
 
   return socketService;
 };

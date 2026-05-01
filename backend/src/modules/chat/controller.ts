@@ -1,6 +1,8 @@
 import { Response } from 'express';
 import { AuthRequest } from '../../shared/middleware/auth';
 import prisma from '../../config/prisma';
+import { getIOInstance } from '../../config/socketio';
+import { WebSocketEvent } from '../../shared/types/websocket';
 import type { ConversationWithLastMessage, ConversationWithParticipants, MessageWithUser } from '../../shared/types';
 
 export const getConversations = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -101,6 +103,17 @@ export const createConversation = async (req: AuthRequest, res: Response): Promi
         participants: true
       }
     });
+
+    // Notify all participants about the new conversation via WebSocket
+    try {
+      const io = getIOInstance();
+      conversation.participants.forEach((participant) => {
+        io.to(`user:${participant.id}`).emit(WebSocketEvent.CONVERSATION_CREATED, conversation);
+      });
+    } catch (error) {
+      console.error('Failed to emit conversation created event:', error);
+      // Don't fail the request if socket emission fails
+    }
 
     res.status(201).json(conversation);
   } catch (error) {

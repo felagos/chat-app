@@ -19,6 +19,7 @@ export const WebSocketEvent = {
   USER_LEFT: 'user:left' as const,
   USER_ONLINE: 'user:online' as const,
   USER_OFFLINE: 'user:offline' as const,
+  CONVERSATION_CREATED: 'conversation:created' as const,
 
   // Connection Events
   CONNECT: 'connect' as const,
@@ -56,6 +57,14 @@ export interface WebSocketPayloads {
   [WebSocketEvent.USER_LEFT]: { userId: string };
   [WebSocketEvent.USER_ONLINE]: { userId: string; timestamp: number };
   [WebSocketEvent.USER_OFFLINE]: { userId: string; timestamp: number };
+  [WebSocketEvent.CONVERSATION_CREATED]: {
+    id: string;
+    type: 'direct' | 'group';
+    participants: Array<{ id: string; username: string; email: string; avatar?: string; status: 'ONLINE' | 'OFFLINE' | 'AWAY' }>;
+    name?: string;
+    avatar?: string;
+    createdAt: string;
+  };
 
   // Connection Events
   [WebSocketEvent.CONNECT]: void;
