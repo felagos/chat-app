@@ -18,6 +18,10 @@ export const connectRabbitMQ = async (): Promise<void> => {
     await channel.assertQueue('messages.queue', { durable: true });
     await channel.assertQueue('notifications.queue', { durable: true });
 
+    // Bind queues to exchange
+    await channel.bindQueue('messages.queue', 'chat', 'message.new');
+    await channel.bindQueue('notifications.queue', 'chat', 'message.processed');
+
     console.log('✅ Connected to RabbitMQ');
   } catch (error) {
     console.error('❌ Failed to connect to RabbitMQ:', error);

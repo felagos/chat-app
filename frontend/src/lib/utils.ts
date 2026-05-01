@@ -1,5 +1,5 @@
-export function formatDate(date: Date | string): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+export function formatDate(date: Date | string | number): string {
+  const dateObj = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today);
@@ -17,8 +17,8 @@ export function formatDate(date: Date | string): string {
   return dateObj.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
 }
 
-export function formatTime(date: Date | string): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+export function formatTime(date: Date | string | number): string {
+  const dateObj = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
   return dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 }
 

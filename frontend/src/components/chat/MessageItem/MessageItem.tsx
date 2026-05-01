@@ -12,14 +12,14 @@ export interface MessageItemProps {
 }
 
 export const MessageItem = ({ message, currentUser }: MessageItemProps) => {
-  const isOwn = message.senderId === currentUser?.id;
+  const isOwn = message.userId === currentUser?.id;
 
   return (
     <div className={clsx(styles.wrapper, isOwn ? styles.own : styles.other)}>
       <div className={clsx(styles.bubble, isOwn ? styles.ownBubble : styles.otherBubble)}>
         <Text className={styles.text}>{message.content}</Text>
         <Text type="secondary" className={styles.time}>
-          {formatTime(message.timestamp)}
+          {formatTime(message.createdAt)}
         </Text>
       </div>
     </div>

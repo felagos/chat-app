@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { socketService } from '../lib/socket';
 import { useChatStore } from '../store/chatStore';
 import { useAuthStore } from '../store/authStore';
@@ -7,12 +7,27 @@ import { apiClient } from '../lib/api';
 
 export const useChat = () => {
   const token = useAuthStore((state) => state.token);
+  const user = useAuthStore((state) => state.user);
   const {
     activeConversationId,
     messages,
     typingUsers,
     setMessages,
+    addMessage,
   } = useChatStore();
+
+  const prevConversationId = useRef<string | null>(null);
+
+  // Join/leave conversation rooms when active conversation changes
+  useEffect(() => {
+    if (prevConversationId.current && prevConversationId.current !== activeConversationId) {
+      socketService.leaveConversation(prevConversationId.current);
+    }
+    if (activeConversationId) {
+      socketService.joinConversation(activeConversationId);
+    }
+    prevConversationId.current = activeConversationId;
+  }, [activeConversationId]);
 
   const currentMessages = activeConversationId
     ? messages[activeConversationId] || []
@@ -20,12 +35,21 @@ export const useChat = () => {
 
   const sendMessage = useCallback(
     (content: string) => {
-      if (!activeConversationId || !token) return;
+      if (!activeConversationId || !token || !user) return;
 
-      // Send message via socket
       socketService.sendMessage(activeConversationId, content);
+
+      // Add sender's own message to local store immediately
+      addMessage({
+        id: `local-${Date.now()}`,
+        conversationId: activeConversationId,
+        userId: user.id,
+        content,
+        status: 'sent',
+        createdAt: new Date().toISOString(),
+      });
     },
-    [activeConversationId, token]
+    [activeConversationId, token, user, addMessage]
   );
 
   const { isLoading, data } = useQuery({

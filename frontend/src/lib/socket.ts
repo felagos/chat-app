@@ -57,6 +57,16 @@ class SocketService {
     this.socket?.emit(WebSocketEvent.TYPING_STOP, { conversationId });
   }
 
+  // Join a conversation room
+  joinConversation(conversationId: string): void {
+    this.socket?.emit(WebSocketEvent.CONVERSATION_JOIN, { conversationId });
+  }
+
+  // Leave a conversation room
+  leaveConversation(conversationId: string): void {
+    this.socket?.emit(WebSocketEvent.CONVERSATION_LEAVE, { conversationId });
+  }
+
   on<K extends keyof WebSocketPayloads>(event: K, callback: (data: WebSocketPayloads[K]) => void): void {
     this.socket?.on(event as string, (data: unknown) => {
       callback(data as WebSocketPayloads[K]);

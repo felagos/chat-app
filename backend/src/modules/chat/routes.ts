@@ -10,5 +10,6 @@ router.get('/', controller.getConversations);
 router.post('/', controller.createConversation);
 router.get('/:id', controller.getConversation);
 router.get('/:id/messages', controller.getMessages);
+router.delete('/:id', controller.deleteConversation);
 
 export default router;

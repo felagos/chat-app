@@ -43,7 +43,20 @@ export const setupSocketIO = (io: SocketIOServer): void => {
     socket.on(WebSocketEvent.MESSAGE_SEND, async (data: { conversationId: string; content: string }) => {
       try {
         console.log(`📨 [${userId}] Sending message to conversation ${data.conversationId}`);
-        
+
+        const tempMessage = {
+          id: `temp-${Date.now()}`,
+          conversationId: data.conversationId,
+          userId,
+          content: data.content,
+          status: 'sent',
+          createdAt: new Date().toISOString(),
+        };
+
+        // Emit to other conversation participants immediately (optimistic)
+        socket.to(`conversation:${data.conversationId}`).emit(WebSocketEvent.MESSAGE_RECEIVED, tempMessage);
+
+        // Persist asynchronously via RabbitMQ
         await publishMessage('chat', 'message.new', {
           conversationId: data.conversationId,
           userId,
@@ -51,14 +64,7 @@ export const setupSocketIO = (io: SocketIOServer): void => {
           timestamp: Date.now()
         });
 
-        socket.to(`conversation:${data.conversationId}`).emit(WebSocketEvent.MESSAGE_RECEIVED, {
-          conversationId: data.conversationId,
-          userId,
-          content: data.content,
-          timestamp: Date.now()
-        });
-        
-        console.log(`✅ [${userId}] Message sent successfully`);
+        console.log(`✅ [${userId}] Message queued for persistence`);
       } catch (error) {
         console.error(`❌ [${userId}] Failed to send message:`, error);
         socket.emit(WebSocketEvent.ERROR, { 

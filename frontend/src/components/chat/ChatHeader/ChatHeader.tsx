@@ -8,7 +8,7 @@ import styles from './ChatHeader.module.scss';
 const { Text } = Typography;
 
 export const ChatHeader = () => {
-  const { activeConversationId, conversations } = useChatStore();
+  const { activeConversationId, conversations, onlineUsers } = useChatStore();
   const { user } = useAuthStore();
 
   const conversation = useMemo(
@@ -21,6 +21,11 @@ export const ChatHeader = () => {
       conversation?.participants.find((p) => p.id !== user?.id) ??
       conversation?.participants[0],
     [conversation?.participants, user?.id]
+  );
+
+  const isOnline = useMemo(
+    () => conversation?.type === 'group' ? false : !!(otherUser && onlineUsers.has(otherUser.id)),
+    [conversation?.type, otherUser, onlineUsers]
   );
 
   if (!activeConversationId || !conversation) return null;
@@ -43,7 +48,7 @@ export const ChatHeader = () => {
             {name}
           </Text>
           <Text type="secondary" className={styles.status}>
-            En línea
+            {isOnline ? 'En línea' : 'Desconectado'}
           </Text>
         </div>
       </div>

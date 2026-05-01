@@ -177,7 +177,7 @@ export const getMessages = async (req: AuthRequest, res: Response): Promise<void
 
     const messages: MessageWithUser[] = await prisma.message.findMany({
       where: { conversationId: id },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
       skip: Number(skip),
       take: Number(take),
       include: {
@@ -189,6 +189,41 @@ export const getMessages = async (req: AuthRequest, res: Response): Promise<void
     res.json(messages);
   } catch (error) {
     console.error('Error fetching messages:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const deleteConversation = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    const { id } = req.params;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const conversation = await prisma.conversation.findUnique({
+      where: { id },
+      include: { participants: true }
+    });
+
+    if (!conversation) {
+      res.status(404).json({ error: 'Conversation not found' });
+      return;
+    }
+
+    const isParticipant = conversation.participants.some((p: { id: string }) => p.id === userId);
+    if (!isParticipant) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+
+    await prisma.conversation.delete({ where: { id } });
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting conversation:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

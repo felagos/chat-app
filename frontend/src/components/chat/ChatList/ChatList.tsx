@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { List, Avatar, Badge, Input, Typography, Button, Empty, Tooltip } from 'antd';
-import { TeamOutlined } from '@ant-design/icons';
+import { List, Avatar, Badge, Input, Typography, Button, Empty, Tooltip, Modal } from 'antd';
+import { TeamOutlined, DeleteOutlined } from '@ant-design/icons';
 import clsx from 'clsx';
 import { useChatStore } from '../../../store/chatStore';
 import { formatDate, truncateText } from '../../../lib/utils';
@@ -12,10 +12,22 @@ const { Text } = Typography;
 const { Search } = Input;
 
 export const ChatList = () => {
-  const { conversations, activeConversationId, setActiveConversation } = useChatStore();
+  const { conversations, activeConversationId, setActiveConversation, deleteConversation } = useChatStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
+
+  const handleDeleteConversation = (id: string, name: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    Modal.confirm({
+      title: '¿Eliminar chat?',
+      content: `Se eliminará "${name}" y todos sus mensajes permanentemente.`,
+      okText: 'Eliminar',
+      okButtonProps: { danger: true },
+      cancelText: 'Cancelar',
+      onOk: () => deleteConversation(id),
+    });
+  };
 
   const filteredConversations = useMemo(
     () =>
@@ -74,6 +86,18 @@ export const ChatList = () => {
                   key={conversation.id}
                   className={clsx(styles.conversationItem, isActive && styles.active)}
                   onClick={() => setActiveConversation(conversation.id)}
+                  actions={[
+                    <Tooltip title="Eliminar chat" key="delete">
+                      <Button
+                        shape="circle"
+                        size="small"
+                        icon={<DeleteOutlined />}
+                        danger
+                        className={styles.deleteBtn}
+                        onClick={(e) => handleDeleteConversation(conversation.id, name, e)}
+                      />
+                    </Tooltip>
+                  ]}
                 >
                   <List.Item.Meta
                     avatar={

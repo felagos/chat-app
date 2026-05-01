@@ -8,6 +8,7 @@ interface ChatState {
   messages: Record<string, Message[]>;
   activeConversationId: string | null;
   typingUsers: Record<string, string[]>;
+  onlineUsers: Set<string>;
   loading: boolean;
 
   setConversations: (conversations: Conversation[]) => void;
@@ -17,9 +18,12 @@ interface ChatState {
   addMessage: (message: Message) => void;
   setActiveConversation: (id: string | null) => void;
   setTyping: (conversationId: string, userId: string, isTyping: boolean) => void;
+  setUserOnline: (userId: string) => void;
+  setUserOffline: (userId: string) => void;
   setLoading: (loading: boolean) => void;
   createConversation: (username: string) => Promise<void>;
   createGroup: (groupName: string, participantUsernames: string[]) => Promise<void>;
+  deleteConversation: (id: string) => Promise<void>;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -27,6 +31,7 @@ export const useChatStore = create<ChatState>((set) => ({
   messages: {},
   activeConversationId: null,
   typingUsers: {},
+  onlineUsers: new Set<string>(),
   loading: false,
 
   setConversations: (conversations: Conversation[]) =>
@@ -82,6 +87,31 @@ export const useChatStore = create<ChatState>((set) => ({
           [conversationId]: updated,
         },
       };
+    }),
+
+  deleteConversation: async (id: string) => {
+    try {
+      const token = useAuthStore.getState().token;
+      if (!token) return;
+      await apiClient.delete(`/chat/${id}`, token);
+      set((state) => ({
+        conversations: state.conversations.filter((c) => c.id !== id),
+        activeConversationId: state.activeConversationId === id ? null : state.activeConversationId,
+        messages: Object.fromEntries(Object.entries(state.messages).filter(([k]) => k !== id)),
+      }));
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+    }
+  },
+
+  setUserOnline: (userId: string) =>
+    set((state) => ({ onlineUsers: new Set([...state.onlineUsers, userId]) })),
+
+  setUserOffline: (userId: string) =>
+    set((state) => {
+      const next = new Set(state.onlineUsers);
+      next.delete(userId);
+      return { onlineUsers: next };
     }),
 
   setLoading: (loading: boolean) => set({ loading }),

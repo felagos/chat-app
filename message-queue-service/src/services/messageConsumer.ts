@@ -1,4 +1,5 @@
 import { consumeMessages, publishMessage } from './rabbitmq';
+import prisma from '../config/prisma';
 
 interface MessageHandlerCallback {
   (data: Record<string, unknown>): Promise<void>;
@@ -33,10 +34,20 @@ export const startMessageConsumer = async (): Promise<void> => {
         const data = JSON.parse(msg.content.toString());
         console.log(`📨 Processing message from queue:`, data);
 
-        // Publicar evento de procesamiento
+        // Save message to database asynchronously
+        const savedMessage = await prisma.message.create({
+          data: {
+            content: data.content,
+            conversationId: data.conversationId,
+            userId: data.userId,
+          },
+        });
+
+        console.log(`✅ Message persisted to DB: ${savedMessage.id}`);
+
         await publishMessage('chat', 'message.processed', {
           status: 'processed',
-          messageId: data.messageId,
+          messageId: savedMessage.id,
           timestamp: Date.now()
         });
       } catch (error) {

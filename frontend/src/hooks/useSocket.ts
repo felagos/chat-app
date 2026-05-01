@@ -8,7 +8,7 @@ import type { Message } from '../types';
 export const useSocket = () => {
   const token = useAuthStore((state) => state.token);
   const userId = useAuthStore((state) => state.user?.id);
-  const { addMessage, setTyping } = useChatStore();
+  const { addMessage, setTyping, setUserOnline, setUserOffline } = useChatStore();
 
   useEffect(() => {
     if (!token || !userId) return;
@@ -28,6 +28,15 @@ export const useSocket = () => {
     // Listen for user stopped typing
     socketService.onUserStoppedTyping((data: { userId: string; conversationId: string }) => {
       setTyping(data.conversationId, data.userId, false);
+    });
+
+    // Listen for user online/offline status
+    socketService.on(WebSocketEvent.USER_ONLINE, ({ userId }: { userId: string }) => {
+      setUserOnline(userId);
+    });
+
+    socketService.on(WebSocketEvent.USER_OFFLINE, ({ userId }: { userId: string }) => {
+      setUserOffline(userId);
     });
 
     return () => {

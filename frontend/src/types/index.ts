@@ -9,13 +9,11 @@ export interface User {
 export interface Message {
   id: string;
   conversationId: string;
-  senderId: string;
+  userId: string;
   content: string;
-  type: 'text' | 'image' | 'video' | 'file';
-  mediaUrl?: string;
-  timestamp: Date;
-  status: 'sent' | 'delivered' | 'read';
-  readBy: string[];
+  status: string;
+  createdAt: string | Date;
+  user?: User;
 }
 
 export interface Conversation {

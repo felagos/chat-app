@@ -45,13 +45,10 @@ export interface WebSocketPayloads {
   [WebSocketEvent.MESSAGE_RECEIVED]: {
     id: string;
     conversationId: string;
-    senderId: string;
+    userId: string;
     content: string;
-    type: 'text' | 'image' | 'video' | 'file';
-    mediaUrl?: string;
-    timestamp: Date;
-    status: 'sent' | 'delivered' | 'read';
-    readBy: string[];
+    status: string;
+    createdAt: string | Date;
   };
   [WebSocketEvent.USER_TYPING]: { userId: string; conversationId: string };
   [WebSocketEvent.USER_STOPPED_TYPING]: { userId: string; conversationId: string };
