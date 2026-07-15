@@ -1,40 +1,36 @@
 @use "styles/abstracts/variables" as *;
-@use "styles/mixins" as *;
 
 .messageInput {
   display: flex;
-  align-items: flex-end;
-  gap: $spacing-sm;
-  padding: $spacing-sm $spacing-md;
-  background: $color-bg-elevated;
+  gap: 10px;
+  padding: 16px 24px;
   border-top: 1px solid $color-border;
+  background: $color-panel;
   flex-shrink: 0;
 }
 
-.textarea {
+.input {
   flex: 1;
-  border-radius: $border-radius-xl !important;
-  resize: none;
-
-  :global {
-    .ant-input {
-      border-radius: $border-radius-xl;
-      padding: $spacing-sm $spacing-md;
-    }
-  }
+  padding: 12px 16px;
+  border-radius: $radius-lg;
+  border: 1px solid $color-border;
+  font-size: 14px;
+  outline: none;
+  background: $color-input-bg;
+  color: $color-text;
 }
 
 .sendBtn {
-  flex-shrink: 0;
-  background: $color-primary !important;
-  border-color: $color-primary !important;
+  border: none;
+  background: $color-accent;
+  color: white;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  font-size: 17px;
+  flex: none;
 
-  &:hover:not(:disabled) {
-    background: $color-primary-light !important;
-    border-color: $color-primary-light !important;
-  }
-
-  &:disabled {
-    opacity: 0.5;
+  &:hover {
+    background: $color-accent-hover;
   }
 }

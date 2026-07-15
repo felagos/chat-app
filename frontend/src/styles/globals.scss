@@ -10,24 +10,55 @@ html,
 body {
   width: 100%;
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 16px;
   line-height: 1.5;
-  color: #111827;
-  background: #fff;
+  color: var(--text);
+  background: var(--bg);
 }
 
-// WhatsApp Color Palette
+// Charla theme tokens — light (default)
 :root {
-  --wa-green: #075e54;
-  --wa-green-light: #128c7e;
-  --wa-green-lighter: #25d366;
-  --wa-gray: #f0f0f0;
-  --wa-gray-light: #f5f5f5;
-  --wa-border: #e5e5e5;
-  --wa-text: #111827;
-  --wa-text-secondary: #667781;
+  --bg: oklch(0.97 0.02 75);
+  --panel: oklch(0.995 0.006 75);
+  --border: oklch(0.9 0.02 75);
+  --border-soft: oklch(0.92 0.02 75);
+  --text: oklch(0.27 0.02 60);
+  --muted: oklch(0.52 0.02 60);
+  --muted-light: oklch(0.55 0.02 60);
+  --input-bg: oklch(0.97 0.015 75);
+  --add-box-bg: oklch(0.96 0.025 75);
+  --icon-btn-bg: oklch(0.94 0.02 75);
+  --bubble-recv-bg: white;
+  --bubble-recv-text: oklch(0.27 0.02 60);
+  --empty-icon-bg: oklch(0.93 0.03 250);
+  --hint-box-bg: oklch(0.96 0.025 75);
+
+  // Fixed accents — same in both themes
+  --accent: oklch(0.6 0.15 250);
+  --accent-hover: oklch(0.52 0.15 250);
+  --danger: oklch(0.55 0.19 25);
+  --online: oklch(0.68 0.16 145);
+  --online-text: oklch(0.55 0.14 145);
+  --offline: oklch(0.75 0.01 75);
+  --row-active-bg: oklch(0.93 0.035 250);
+}
+
+:root[data-theme='dark'] {
+  --bg: oklch(0.22 0.015 260);
+  --panel: oklch(0.26 0.02 260);
+  --border: oklch(0.34 0.02 260);
+  --border-soft: oklch(0.32 0.02 260);
+  --text: oklch(0.93 0.01 90);
+  --muted: oklch(0.72 0.02 90);
+  --muted-light: oklch(0.68 0.02 90);
+  --input-bg: oklch(0.3 0.02 260);
+  --add-box-bg: oklch(0.29 0.02 260);
+  --icon-btn-bg: oklch(0.32 0.02 260);
+  --bubble-recv-bg: oklch(0.32 0.02 260);
+  --bubble-recv-text: oklch(0.93 0.01 90);
+  --empty-icon-bg: oklch(0.34 0.06 250);
+  --hint-box-bg: oklch(0.29 0.02 260);
 }
 
 #root {
@@ -36,12 +67,12 @@ body {
 }
 
 a {
-  color: var(--wa-green);
+  color: oklch(0.55 0.16 250);
   text-decoration: none;
   transition: color 0.2s;
 
   &:hover {
-    color: var(--wa-green-light);
+    color: oklch(0.45 0.16 250);
   }
 }
 
@@ -61,6 +92,11 @@ select {
   font-size: inherit;
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: oklch(0.6 0.02 60);
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -71,20 +107,6 @@ select {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 4px;
-
-  &:hover {
-    background: #999;
-  }
-}
-
-::-moz-selection {
-  background: var(--wa-green-lighter);
-  color: white;
-}
-
-::selection {
-  background: var(--wa-green-lighter);
-  color: white;
+  background: oklch(0.85 0.02 75);
+  border-radius: 8px;
 }

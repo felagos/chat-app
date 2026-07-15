@@ -22,25 +22,22 @@ export function formatTime(date: Date | string | number): string {
   return dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 }
 
-export function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
-
 export function truncateText(text: string, length: number): string {
   return text.length > length ? `${text.slice(0, length)}...` : text;
 }
 
-export function isToday(date: Date | string): boolean {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  const today = new Date();
-  return (
-    dateObj.getDate() === today.getDate() &&
-    dateObj.getMonth() === today.getMonth() &&
-    dateObj.getFullYear() === today.getFullYear()
-  );
+const AVATAR_HUES = [250, 30, 145, 300, 20, 200];
+
+export function colorForName(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) % 1000;
+  }
+  const hue = AVATAR_HUES[hash % AVATAR_HUES.length];
+  return `oklch(0.62 0.13 ${hue})`;
+}
+
+export function initialsForName(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
 }

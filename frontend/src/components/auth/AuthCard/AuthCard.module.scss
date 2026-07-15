@@ -1,0 +1,59 @@
+@use "styles/abstracts/variables" as *;
+
+.page {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $color-bg;
+}
+
+.card {
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  background: $color-panel;
+  border-radius: $radius-xl;
+  padding: 34px 32px;
+  box-shadow: $shadow-xl;
+  border: 1px solid $color-border-soft;
+  position: relative;
+}
+
+.themeToggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: $color-icon-btn-bg;
+  color: $color-muted;
+  font-size: 14px;
+}
+
+.logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: $color-accent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  color: white;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-weight: 900;
+  font-size: 24px;
+  color: $color-text;
+}
+
+.subtitle {
+  font-size: 13.5px;
+  color: $color-muted;
+  margin-top: 4px;
+  margin-bottom: 24px;
+}

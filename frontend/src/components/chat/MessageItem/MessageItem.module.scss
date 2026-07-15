@@ -1,63 +1,37 @@
 @use "styles/abstracts/variables" as *;
-@use "styles/mixins" as *;
 
 .wrapper {
   display: flex;
-  margin-bottom: $spacing-xs;
+  justify-content: flex-start;
 
   &.own {
     justify-content: flex-end;
   }
-
-  &.other {
-    justify-content: flex-start;
-  }
 }
 
 .bubble {
-  max-width: 65%;
-  padding: $spacing-sm $spacing-md;
-  border-radius: $border-radius-xl;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  max-width: 60%;
+  padding: 10px 15px;
+  border-radius: 16px 16px 16px 4px;
+  font-size: 14.5px;
+  line-height: 1.45;
   box-shadow: $shadow-sm;
 }
 
 .ownBubble {
-  background: $color-primary-lighter;
-  border-bottom-right-radius: $border-radius-sm;
-
-  .text {
-    color: white !important;
-  }
-
-  .time {
-    color: rgba(255, 255, 255, 0.75) !important;
-    text-align: right;
-  }
+  border-radius: 16px 16px 4px 16px;
+  background: $color-accent;
+  color: white;
 }
 
 .otherBubble {
-  background: $color-bg-elevated;
-  border-bottom-left-radius: $border-radius-sm;
-
-  .text {
-    color: $color-text-primary !important;
-  }
-
-  .time {
-    text-align: right;
-  }
-}
-
-.text {
-  font-size: $font-size-base;
-  line-height: 1.5;
-  word-break: break-word;
+  background: $color-bubble-recv-bg;
+  color: $color-bubble-recv-text;
 }
 
 .time {
-  font-size: $font-size-sm;
-  align-self: flex-end;
+  font-size: 10.5px;
+  margin-top: 4px;
+  opacity: 0.65;
+  text-align: right;
 }

@@ -1,123 +1,87 @@
-import { Form, Input, Button, Alert, Typography } from 'antd';
-import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons';
+import { useState } from 'react';
+import type { KeyboardEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
+import { AuthCard } from '../AuthCard';
 import styles from './RegisterForm.module.scss';
-
-const { Title, Text } = Typography;
-
-interface RegisterFormValues {
-  username: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
 
 export const RegisterForm = () => {
   const { register, isLoading, error } = useAuth();
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [formError, setFormError] = useState('');
 
-  const onFinish = (values: RegisterFormValues) => {
-    register(values.username, values.email, values.password);
+  const handleSubmit = () => {
+    if (isLoading) return;
+    if (!username.trim() || !email.trim() || !password) {
+      setFormError('Completá todos los campos');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setFormError('Las contraseñas no coinciden');
+      return;
+    }
+    setFormError('');
+    register(username.trim(), email.trim(), password);
   };
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleSubmit();
+  };
+
+  const displayedError =
+    formError || (error instanceof Error ? error.message : error ? 'No se pudo crear la cuenta' : '');
+
   return (
-    <div className={styles.container}>
-      <Title level={2} className={styles.title}>
-        Crear Cuenta
-      </Title>
-
-      {error && (
-        <Alert
-          type="error"
-          message={error instanceof Error ? error.message : 'Error al registrarse'}
-          showIcon
-          className={styles.alert}
+    <AuthCard subtitle="Creá tu cuenta para empezar a chatear">
+      <div className={styles.fields}>
+        <input
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Usuario"
+          disabled={isLoading}
+          className={styles.input}
         />
-      )}
+        <input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Correo electrónico"
+          disabled={isLoading}
+          className={styles.input}
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Contraseña"
+          disabled={isLoading}
+          className={styles.input}
+        />
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Confirmar contraseña"
+          disabled={isLoading}
+          className={styles.input}
+        />
+      </div>
 
-      <Form<RegisterFormValues>
-        layout="vertical"
-        onFinish={onFinish}
-        size="large"
-        autoComplete="off"
-      >
-        <Form.Item
-          name="username"
-          label="Nombre de usuario"
-          rules={[
-            { required: true, message: 'El nombre de usuario es requerido' },
-            { min: 3, message: 'Mínimo 3 caracteres' },
-          ]}
-        >
-          <Input
-            prefix={<UserOutlined />}
-            placeholder="Mi usuario"
-            disabled={isLoading}
-          />
-        </Form.Item>
+      {displayedError && <div className={styles.error}>{displayedError}</div>}
 
-        <Form.Item
-          name="email"
-          label="Email"
-          rules={[
-            { required: true, message: 'El email es requerido' },
-            { type: 'email', message: 'Ingresa un email válido' },
-          ]}
-        >
-          <Input
-            prefix={<MailOutlined />}
-            placeholder="tu@email.com"
-            disabled={isLoading}
-          />
-        </Form.Item>
+      <button onClick={handleSubmit} disabled={isLoading} className={styles.submit}>
+        {isLoading ? 'Creando cuenta…' : 'Crear cuenta'}
+      </button>
 
-        <Form.Item
-          name="password"
-          label="Contraseña"
-          rules={[
-            { required: true, message: 'La contraseña es requerida' },
-            { min: 6, message: 'Mínimo 6 caracteres' },
-          ]}
-        >
-          <Input.Password
-            prefix={<LockOutlined />}
-            placeholder="••••••••"
-            disabled={isLoading}
-          />
-        </Form.Item>
-
-        <Form.Item
-          name="confirmPassword"
-          label="Confirmar Contraseña"
-          dependencies={['password']}
-          rules={[
-            { required: true, message: 'Confirma tu contraseña' },
-            ({ getFieldValue }) => ({
-              validator(_rule, value) {
-                if (!value || getFieldValue('password') === value) {
-                  return Promise.resolve();
-                }
-                return Promise.reject(new Error('Las contraseñas no coinciden'));
-              },
-            }),
-          ]}
-        >
-          <Input.Password
-            prefix={<LockOutlined />}
-            placeholder="••••••••"
-            disabled={isLoading}
-          />
-        </Form.Item>
-
-        <Form.Item className={styles.submitItem}>
-          <Button type="primary" htmlType="submit" loading={isLoading} block>
-            Registrarse
-          </Button>
-        </Form.Item>
-      </Form>
-
-      <Text className={styles.link}>
-        ¿Ya tienes cuenta? <a href="/auth/login">Inicia sesión aquí</a>
-      </Text>
-    </div>
+      <div className={styles.hint}>
+        ¿Ya tenés cuenta? <Link to="/auth/login">Iniciá sesión</Link>
+      </div>
+    </AuthCard>
   );
 };

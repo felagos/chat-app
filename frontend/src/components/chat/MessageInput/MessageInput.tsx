@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Input, Button, Tooltip } from 'antd';
-import { SendOutlined } from '@ant-design/icons';
+import type { ChangeEvent, KeyboardEvent } from 'react';
 import { useChat } from '../../../hooks/useChat';
 import styles from './MessageInput.module.scss';
 
@@ -9,7 +8,7 @@ export const MessageInput = () => {
   const [isTyping, setIsTyping] = useState(false);
   const { sendMessage, sendTyping } = useChat();
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setMessage(value);
 
@@ -23,41 +22,29 @@ export const MessageInput = () => {
   };
 
   const handleSend = () => {
-    if (message.trim()) {
-      sendMessage(message.trim());
-      setMessage('');
-      setIsTyping(false);
-      sendTyping(false);
-    }
+    if (!message.trim()) return;
+    sendMessage(message.trim());
+    setMessage('');
+    setIsTyping(false);
+    sendTyping(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleSend();
   };
 
   return (
     <div className={styles.messageInput}>
-      <Input.TextArea
-        placeholder="Escribe un mensaje..."
+      <input
         value={message}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        autoSize={{ minRows: 1, maxRows: 4 }}
-        className={styles.textarea}
+        placeholder="Escribí un mensaje…"
+        className={styles.input}
       />
-      <Tooltip title="Enviar (Enter)">
-        <Button
-          type="primary"
-          shape="circle"
-          icon={<SendOutlined />}
-          onClick={handleSend}
-          disabled={!message.trim()}
-          className={styles.sendBtn}
-        />
-      </Tooltip>
+      <button onClick={handleSend} className={styles.sendBtn}>
+        ➤
+      </button>
     </div>
   );
 };

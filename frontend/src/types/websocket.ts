@@ -59,7 +59,7 @@ export interface WebSocketPayloads {
   [WebSocketEvent.USER_OFFLINE]: { userId: string; timestamp: number };
   [WebSocketEvent.CONVERSATION_CREATED]: {
     id: string;
-    type: 'direct' | 'group';
+    type: 'private' | 'group';
     participants: Array<{ id: string; username: string; email: string; avatar?: string; status: 'ONLINE' | 'OFFLINE' | 'AWAY' }>;
     name?: string;
     avatar?: string;

@@ -1,27 +1,10 @@
+@use "styles/abstracts/variables" as *;
+
 .chatPage {
   display: flex;
-  flex-direction: column;
+  width: 100vw;
   height: 100vh;
-  background: #fff;
-
-  :global {
-    .ant-layout {
-      height: 100%;
-    }
-  }
-}
-
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-}
-
-.container {
-  display: flex;
-  flex: 1;
-  min-height: 0;
+  background: $color-bg;
   overflow: hidden;
 }
 
@@ -30,27 +13,4 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: var(--wa-gray-light);
-  overflow: hidden;
 }
-
-.emptyState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  color: var(--wa-text-secondary);
-  text-align: center;
-}
-
-.emptyIcon {
-  font-size: 4rem;
-  color: #ddd;
-}
-
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-  }
-}
-

@@ -1,37 +1,59 @@
 @use "styles/abstracts/variables" as *;
-@use "styles/mixins" as *;
 
-.container {
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.input {
+  padding: 12px 15px;
+  border-radius: 13px;
+  border: 1px solid $color-border;
+  font-size: 14px;
+  outline: none;
+  background: $color-input-bg;
+  color: $color-text;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.error {
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: $color-danger;
+  font-weight: 600;
+}
+
+.submit {
   width: 100%;
+  margin-top: 18px;
+  padding: 12px;
+  border-radius: 13px;
+  background: $color-accent;
+  color: white;
+  font-weight: 800;
+  font-size: 14.5px;
+
+  &:hover:not(:disabled) {
+    background: $color-accent-hover;
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
 }
 
-.title {
+.hint {
+  margin-top: 20px;
   text-align: center;
-  margin-bottom: $spacing-lg !important;
-  color: $color-text-primary !important;
-}
-
-.alert {
-  margin-bottom: $spacing-md;
-}
-
-.submitItem {
-  margin-top: $spacing-lg;
-  margin-bottom: 0;
-}
-
-.link {
-  display: block;
-  text-align: center;
-  margin-top: $spacing-md;
-  color: $color-text-secondary;
+  font-size: 12.5px;
+  color: $color-muted;
 
   a {
-    color: $color-primary;
-    font-weight: 500;
-
-    &:hover {
-      color: $color-primary-light;
-    }
+    font-weight: 700;
   }
 }

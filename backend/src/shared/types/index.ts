@@ -1,12 +1,22 @@
 import { Prisma } from '@prisma/client';
 
+export const safeUserSelect = {
+  id: true,
+  email: true,
+  username: true,
+  avatar: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true
+} satisfies Prisma.UserSelect;
+
 const conversationWithParticipantsValidator = Prisma.validator<Prisma.ConversationDefaultArgs>()({
-  include: { participants: true }
+  include: { participants: { select: safeUserSelect } }
 });
 
 const conversationWithLastMessageValidator = Prisma.validator<Prisma.ConversationDefaultArgs>()({
   include: {
-    participants: true,
+    participants: { select: safeUserSelect },
     messages: {
       orderBy: { createdAt: 'desc' },
       take: 1
@@ -14,16 +24,9 @@ const conversationWithLastMessageValidator = Prisma.validator<Prisma.Conversatio
   }
 });
 
-const conversationWithRelationsValidator = Prisma.validator<Prisma.ConversationDefaultArgs>()({
-  include: {
-    participants: true,
-    messages: true
-  }
-});
-
 const messageWithUserValidator = Prisma.validator<Prisma.MessageDefaultArgs>()({
   include: {
-    user: true,
+    user: { select: safeUserSelect },
     media: true
   }
 });
@@ -36,17 +39,6 @@ export type ConversationWithLastMessage = Prisma.ConversationGetPayload<
   typeof conversationWithLastMessageValidator
 >;
 
-export type ConversationWithRelations = Prisma.ConversationGetPayload<
-  typeof conversationWithRelationsValidator
->;
-
 export type MessageWithUser = Prisma.MessageGetPayload<
   typeof messageWithUserValidator
 >;
-
-export type UserWithRelations = Prisma.UserGetPayload<{
-  include: {
-    conversations: true;
-    messages: true;
-  };
-}>;

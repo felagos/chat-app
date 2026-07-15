@@ -42,8 +42,8 @@ async function fetchApi(endpoint: string, options: FetchOptions = {}) {
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Unknown error' }));
-    throw new Error(error.message || `HTTP Error: ${response.status}`);
+    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || error.message || `HTTP Error: ${response.status}`);
   }
 
   if (response.status === 204 || response.headers.get('content-length') === '0') {

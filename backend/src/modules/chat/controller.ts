@@ -3,6 +3,7 @@ import { AuthRequest } from '../../shared/middleware/auth';
 import prisma from '../../config/prisma';
 import { getIOInstance } from '../../config/socketio';
 import { WebSocketEvent } from '../../shared/types/websocket';
+import { safeUserSelect } from '../../shared/types';
 import type { ConversationWithLastMessage, ConversationWithParticipants, MessageWithUser } from '../../shared/types';
 
 export const getConversations = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -23,7 +24,7 @@ export const getConversations = async (req: AuthRequest, res: Response): Promise
         }
       },
       include: {
-        participants: true,
+        participants: { select: safeUserSelect },
         messages: {
           orderBy: { createdAt: 'desc' },
           take: 1
@@ -78,7 +79,7 @@ export const createConversation = async (req: AuthRequest, res: Response): Promi
           }
         },
         include: {
-          participants: true
+          participants: { select: safeUserSelect }
         }
       });
 
@@ -100,7 +101,7 @@ export const createConversation = async (req: AuthRequest, res: Response): Promi
         }
       },
       include: {
-        participants: true
+        participants: { select: safeUserSelect }
       }
     });
 
@@ -135,7 +136,7 @@ export const getConversation = async (req: AuthRequest, res: Response): Promise<
     const conversation: ConversationWithParticipants | null = await prisma.conversation.findUnique({
       where: { id },
       include: {
-        participants: true,
+        participants: { select: safeUserSelect },
         messages: {
           orderBy: { createdAt: 'desc' },
           take: 50
@@ -174,7 +175,7 @@ export const getMessages = async (req: AuthRequest, res: Response): Promise<void
 
     const conversation = await prisma.conversation.findUnique({
       where: { id },
-      include: { participants: true }
+      include: { participants: { select: { id: true } } }
     });
 
     if (!conversation) {
@@ -194,7 +195,7 @@ export const getMessages = async (req: AuthRequest, res: Response): Promise<void
       skip: Number(skip),
       take: Number(take),
       include: {
-        user: true,
+        user: { select: safeUserSelect },
         media: true
       }
     });
@@ -218,7 +219,7 @@ export const deleteConversation = async (req: AuthRequest, res: Response): Promi
 
     const conversation = await prisma.conversation.findUnique({
       where: { id },
-      include: { participants: true }
+      include: { participants: { select: { id: true } } }
     });
 
     if (!conversation) {

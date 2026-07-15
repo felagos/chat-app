@@ -1,80 +1,59 @@
-import { Form, Input, Button, Alert, Typography } from 'antd';
-import { MailOutlined, LockOutlined } from '@ant-design/icons';
+import { useState } from 'react';
+import type { KeyboardEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
+import { AuthCard } from '../AuthCard';
 import styles from './LoginForm.module.scss';
-
-const { Title, Text } = Typography;
-
-interface LoginFormValues {
-  email: string;
-  password: string;
-}
 
 export const LoginForm = () => {
   const { login, isLoading, error } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const onFinish = (values: LoginFormValues) => {
-    login(values.email, values.password);
+  const handleSubmit = () => {
+    if (!email.trim() || !password || isLoading) return;
+    login(email.trim(), password);
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleSubmit();
   };
 
   return (
-    <div className={styles.container}>
-      <Title level={2} className={styles.title}>
-        Iniciar Sesión
-      </Title>
+    <AuthCard subtitle="Iniciá sesión para ver tus mensajes">
+      <div className={styles.fields}>
+        <input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Usuario"
+          disabled={isLoading}
+          className={styles.input}
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Contraseña"
+          disabled={isLoading}
+          className={styles.input}
+        />
+      </div>
 
       {error && (
-        <Alert
-          type="error"
-          message={error instanceof Error ? error.message : 'Error al iniciar sesión'}
-          showIcon
-          className={styles.alert}
-        />
+        <div className={styles.error}>
+          {error instanceof Error ? error.message : 'Usuario o contraseña incorrectos'}
+        </div>
       )}
 
-      <Form<LoginFormValues>
-        layout="vertical"
-        onFinish={onFinish}
-        size="large"
-        autoComplete="off"
-      >
-        <Form.Item
-          name="email"
-          label="Email"
-          rules={[
-            { required: true, message: 'El email es requerido' },
-            { type: 'email', message: 'Ingresa un email válido' },
-          ]}
-        >
-          <Input
-            prefix={<MailOutlined />}
-            placeholder="tu@email.com"
-            disabled={isLoading}
-          />
-        </Form.Item>
+      <button onClick={handleSubmit} disabled={isLoading} className={styles.submit}>
+        {isLoading ? 'Ingresando…' : 'Ingresar'}
+      </button>
 
-        <Form.Item
-          name="password"
-          label="Contraseña"
-          rules={[{ required: true, message: 'La contraseña es requerida' }]}
-        >
-          <Input.Password
-            prefix={<LockOutlined />}
-            placeholder="••••••••"
-            disabled={isLoading}
-          />
-        </Form.Item>
-
-        <Form.Item className={styles.submitItem}>
-          <Button type="primary" htmlType="submit" loading={isLoading} block>
-            Iniciar Sesión
-          </Button>
-        </Form.Item>
-      </Form>
-
-      <Text className={styles.link}>
-        ¿No tienes cuenta? <a href="/auth/register">Regístrate aquí</a>
-      </Text>
-    </div>
+      <div className={styles.hint}>
+        ¿No tenés cuenta? <Link to="/auth/register">Registrate</Link>
+      </div>
+    </AuthCard>
   );
 };

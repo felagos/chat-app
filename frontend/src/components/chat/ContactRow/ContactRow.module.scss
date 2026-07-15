@@ -1,0 +1,108 @@
+@use "styles/abstracts/variables" as *;
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: $radius-lg;
+  cursor: pointer;
+  margin-bottom: 2px;
+  background: transparent;
+
+  &.active {
+    background: $color-row-active-bg;
+  }
+}
+
+.avatarWrap {
+  position: relative;
+  flex: none;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.statusDot {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2.5px solid $color-panel;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 700;
+  font-size: 14.5px;
+  color: $color-text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lastMessage {
+  font-size: 12.5px;
+  color: $color-muted-light;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deleteBtn {
+  border: none;
+  background: transparent;
+  color: $color-muted;
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-sm;
+  font-size: 14px;
+  flex: none;
+
+  &:hover {
+    background: oklch(0.92 0.03 30);
+    color: $color-danger;
+  }
+}
+
+.confirmActions {
+  display: flex;
+  gap: 5px;
+  flex: none;
+}
+
+.confirmBtn,
+.cancelBtn {
+  border: none;
+  width: 26px;
+  height: 26px;
+  border-radius: $radius-sm;
+  font-size: 13px;
+}
+
+.confirmBtn {
+  background: $color-danger;
+  color: white;
+}
+
+.cancelBtn {
+  background: $color-icon-btn-bg;
+  color: $color-muted;
+  font-size: 12px;
+}

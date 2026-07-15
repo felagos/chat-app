@@ -18,7 +18,7 @@ export interface Message {
 
 export interface Conversation {
   id: string;
-  type: 'direct' | 'group';
+  type: 'private' | 'group';
   participants: User[];
   name?: string;
   avatar?: string;
