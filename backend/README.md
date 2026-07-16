@@ -63,8 +63,10 @@ This will start:
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
+- `POST /api/auth/register` - Register new user (returns access token + refresh token)
+- `POST /api/auth/login` - Login user (returns access token + refresh token)
+- `POST /api/auth/refresh` - Exchange a valid refresh token for a new access + refresh token pair (rotates the old one)
+- `POST /api/auth/logout` - Revoke a refresh token
 
 ### Chat
 - `GET /api/chat` - Get all conversations
@@ -132,18 +134,19 @@ Key variables:
 - `MONGODB_URL` - MongoDB connection string
 - `REDIS_URL` - Redis connection string
 - `RABBITMQ_URL` - RabbitMQ connection string
-- `JWT_SECRET` - JWT signing secret
-- `JWT_EXPIRATION` - JWT token expiration (default: 7d)
+- `JWT_SECRET` - JWT signing secret (required — the server refuses to start if unset, no insecure default)
+- `JWT_EXPIRATION` - Access token expiration (default: 15m)
+- `REFRESH_TOKEN_EXPIRATION` - Refresh token expiration (default: 7d)
 - `SOCKET_IO_CORS` - CORS origin for Socket.io
 
 ## Authentication
 
-The backend uses JWT (JSON Web Tokens) for authentication:
+The backend uses short-lived JWTs plus a revocable refresh token:
 
-1. Users register or login via `/api/auth` endpoints
-2. Server returns a JWT token
-3. Client includes token in `Authorization: Bearer <token>` header for authenticated requests
-4. Client includes token in Socket.io connection `auth.token` handshake
+1. Users register or login via `/api/auth` endpoints; server returns a 15-minute access token and a refresh token (opaque random string, sha256-hashed and stored in the `RefreshToken` table)
+2. Client includes the access token in `Authorization: Bearer <token>` header for authenticated requests, and in the Socket.io `auth.token` handshake (verified server-side, not just checked for presence)
+3. On a `401`, the client calls `POST /api/auth/refresh` with the refresh token to get a new pair (rotated — the old refresh token is revoked)
+4. `POST /api/auth/logout` revokes a refresh token server-side
 
 ## Message Queue
 

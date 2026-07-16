@@ -49,6 +49,8 @@ There is no test suite in this repo (no `*.test.ts`/`*.spec.ts` outside `node_mo
 
 `nginx-backend.conf` / `nginx-mqs.conf` are the LB configs used by `docker-compose.scale.yml` and `docker-compose.backend-dev.yml`. In the scaled stack, the frontend is baked at build time (Docker `ARG`/`ENV` in `frontend/Dockerfile`) to call the backend load balancer at `http://localhost/api` / `http://localhost` (host port 80), and is itself served on host port 8080 (container port 80) since the backend LB already owns port 80.
 
+All three nginx configs (`nginx-backend.conf`, `nginx-mqs.conf`, `frontend/nginx.conf`) declare `resolver 127.0.0.11` (Docker's embedded DNS) and use the `resolve` parameter + a `zone` on their `upstream` blocks, instead of plain static `server host:port;` entries. Without this, nginx resolves upstream hostnames once at config-load time and crash-loops permanently if a dependency container isn't DNS-resolvable yet at that exact instant — a real, previously-hit failure mode in this repo. Keep this pattern for any new nginx upstream added here.
+
 ## Architecture
 
 ### Message flow is queue-mediated, not a direct DB write
@@ -71,17 +73,23 @@ Implication: clients can see a message over the socket before it exists in Postg
 
 ### WebSocket event contract is duplicated, not shared
 
-The `WebSocketEvent` const object and payload types are defined independently in `backend/src/shared/types/websocket.ts` and `frontend/src/types/websocket.ts`. Keep both in sync by hand when adding/renaming events — there's no shared npm package between frontend and backend.
+The `WebSocketEvent` const object is defined independently in `backend/src/shared/types/websocket.ts` and `frontend/src/types/websocket.ts` (the backend copy only keeps the event-name const; unused payload typing was removed as dead code). Keep both in sync by hand when adding/renaming events — there's no shared npm package between frontend and backend.
 
-Socket auth (`backend/src/gateway/socket.ts`) trusts `socket.handshake.auth.token` / `auth.userId` sent by the client without verifying the JWT signature server-side — it only checks that both fields are present. REST endpoints, by contrast, do verify JWTs properly via `shared/middleware/auth.ts`.
+Socket auth (`backend/src/gateway/socket.ts`) verifies the JWT (`jwt.verify` against `JWT_SECRET`) at handshake time and derives `userId` from the decoded payload — it does **not** trust a client-supplied `userId`. This mirrors REST's `shared/middleware/auth.ts`.
+
+### JWT auth: 15-minute access token + refresh token
+
+`JWT_EXPIRATION` defaults to `15m` (`backend/src/shared/middleware/auth.ts`). Refresh tokens are opaque random strings (`crypto.randomBytes`, sha256-hashed before being stored in the `RefreshToken` Postgres table via Prisma) — not JWTs — so they're fully revocable and expire per `REFRESH_TOKEN_EXPIRATION` (default `7d`). `POST /api/auth/refresh` verifies + rotates (revokes the old row, issues a new access+refresh pair); `POST /api/auth/logout` revokes the given refresh token. `JWT_SECRET` has no insecure fallback — the process throws at startup if it's unset, so don't rely on a default; all replicas in `docker-compose.scale.yml`/`docker-compose.backend-dev.yml` must share the same `JWT_SECRET` value (per-replica secrets used to differ, which silently broke cross-replica token verification behind the LB — now fixed, keep it that way if editing those files).
+
+On the frontend, `frontend/src/lib/api.ts`'s `fetchApi` transparently intercepts a `401`, calls `getRefreshedToken()` (deduped via a module-level in-flight promise so concurrent 401s only trigger one refresh call), updates `authStore`, and retries the original request once. `frontend/src/hooks/useSocket.ts` calls the same `getRefreshedToken()` on socket `CONNECT_ERROR` (expected once the 15-minute access token expires on a long-lived tab) so Socket.io's built-in reconnection picks up a fresh token via `lib/socket.ts`'s callback-form `auth` option (re-read from `authStore` on every reconnect attempt, not captured once).
 
 ### MongoDB and Redis are vestigial
 
-`docker-compose.yml`, `docker-compose.scale.yml`, and `backend/.env.example` all reference MongoDB and Redis, and `documentation/README-DESIGN-CONCEPTS.md` / `README-IMPLEMENTATION-PLAN.md` describe a design using both — but no current backend or message-queue-service code actually connects to either (no `mongoose`/`redis`/`ioredis` usage anywhere in `src/`). Presence/session tracking (`backend/src/shared/services/pushNotification.ts`) uses in-process `Map`s as a stand-in for what was meant to be Redis, and push/email/SMS notifications there are fully mocked (console.log only, commented-out Twilio/Nodemailer code). Don't assume Mongo/Redis integration exists; if adding it, it needs to be built from scratch.
+`docker-compose.yml`, `docker-compose.scale.yml`, and `backend/.env.example` all reference MongoDB and Redis, and `documentation/README-DESIGN-CONCEPTS.md` / `README-IMPLEMENTATION-PLAN.md` describe a design using both — but no current backend or message-queue-service code actually connects to either (no `mongoose`/`redis`/`ioredis` usage anywhere in `src/`). Presence tracking (`backend/src/shared/services/pushNotification.ts`: `markUserAsActive`/`markUserAsInactive`) uses an in-process `Map` as a stand-in for what was meant to be Redis. Don't assume Mongo/Redis integration exists; if adding it, it needs to be built from scratch. (The file used to also contain a fully-mocked push/email/SMS notification subsystem — never wired to any route or event — which was removed as dead code; don't resurrect that pattern without an actual caller.)
 
 ### Backend module layout
 
-Each domain lives under `backend/src/modules/<name>/` with `controller.ts` + `routes.ts` (+ `index.ts` re-export): `auth`, `chat` (conversations/messages), `users`. Shared cross-cutting code is under `backend/src/shared/` (`middleware/`, `services/`, `types/`) and `backend/src/config/` (Prisma client singleton, Socket.io instance accessor via `getIOInstance()`/`setIOInstance()` so controllers can emit socket events from REST handlers, e.g. `conversation:created` on `createConversation`).
+Each domain lives under `backend/src/modules/<name>/` with `controller.ts` + `routes.ts`: `auth`, `chat` (conversations/messages), `users`. Routes import controllers directly (`import * as controller from './controller'`) — there's no `index.ts` barrel per module (removed as dead code; nothing imported them). Shared cross-cutting code is under `backend/src/shared/` (`middleware/`, `services/`, `types/`, each imported directly by consumers — no `shared/index.ts` barrel either) and `backend/src/config/` (Prisma client singleton, Socket.io instance accessor via `getIOInstance()`/`setIOInstance()` so controllers can emit socket events from REST handlers, e.g. `conversation:created` on `createConversation`).
 
 ### Frontend conventions
 

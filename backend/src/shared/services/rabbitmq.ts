@@ -24,7 +24,7 @@ export const connectRabbitMQ = async (): Promise<void> => {
   }
 };
 
-export const getChannel = (): Channel => {
+const getChannel = (): Channel => {
   if (!channel) {
     throw new Error('RabbitMQ channel is not initialized');
   }
