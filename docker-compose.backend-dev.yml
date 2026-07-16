@@ -251,20 +251,6 @@ services:
       - backend-3
     restart: unless-stopped
 
-  # Frontend
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: http://localhost/api
-        VITE_WS_URL: http://localhost
-    ports:
-      - "8080:80"
-    depends_on:
-      - backend-loadbalancer
-    restart: unless-stopped
-
 volumes:
   postgres_data:
   mongodb_data:

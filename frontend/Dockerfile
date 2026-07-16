@@ -13,6 +13,12 @@ RUN bun install --frozen-lockfile
 # Copy source code
 COPY . .
 
+# Bake API/WS URLs into the Vite build
+ARG VITE_API_URL=http://localhost/api
+ARG VITE_WS_URL=http://localhost
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_WS_URL=$VITE_WS_URL
+
 # Build the application
 RUN bun run build
 

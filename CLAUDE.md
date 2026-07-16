@@ -8,31 +8,22 @@ Real-time chat application split into three independently deployed services, eac
 
 - **`backend/`** — Express + Socket.io API and WebSocket gateway (port 3000). Auth, conversations, users, real-time messaging.
 - **`message-queue-service/`** — Express service (port 3001) whose only job is consuming RabbitMQ queues and persisting messages to Postgres.
-- **`frontend/`** — React 19 + Vite + Ant Design SPA (dev port 5173, served via nginx on port 80 in Docker).
+- **`frontend/`** — React 19 + Vite SPA, bespoke SCSS-module UI (no component library), dev port 5173, served via nginx in Docker.
 
 All three run on Bun (`bun run dev` / `bun install`), though the code is plain TypeScript/Express and would also run under Node.
 
 ## Common Commands
 
-Most day-to-day commands are wrapped in the root `Makefile` (run `make help` for the full list):
+The root `Makefile` only wraps the two Docker Compose entry points:
 
 ```bash
-make install         # bun install in all three services
-make dev-backend      # cd backend && bun run dev
-make dev-frontend     # cd frontend && bun run dev
-make dev-mqs          # cd message-queue-service && bun run dev
-
-make up               # docker-compose up -d (full stack incl. Postgres/Mongo/Redis/RabbitMQ)
-make down / restart / rebuild
-make logs / logs-backend / logs-mqs
-make ps
-
-make prisma-migrate   # cd backend && bun run prisma:migrate
-make prisma-studio    # cd backend && bun run prisma:studio
-make clean            # docker-compose down -v
+make up            # docker-compose -f docker-compose.scale.yml up -d — full scaled stack (3x backend, 3x mqs, both nginx LBs, frontend, Postgres/Mongo/Redis/RabbitMQ)
+make backend-dev    # docker-compose -f docker-compose.backend-dev.yml up -d — same stack minus frontend, for running the frontend locally with `bun run dev` against dockerized backend infra
 ```
 
-Per-service commands (when not using the Makefile):
+`docker-compose.yml` (single-instance, non-scaled) still exists for reference but has no Makefile target — invoke it directly with `docker-compose up -d` if needed.
+
+Everything else (installing deps, running an individual service outside Docker, Prisma migrations, logs) is a plain per-service command, not a Makefile target:
 
 ```bash
 # backend
@@ -54,7 +45,7 @@ cd frontend && bun run build           # tsc -b && vite build
 
 There is no test suite in this repo (no `*.test.ts`/`*.spec.ts` outside `node_modules`) — don't assume one exists when asked to "run the tests".
 
-For a scaled topology (3x backend + 3x message-queue-service behind nginx load balancers), use `docker-compose -f docker-compose.scale.yml up`. `nginx-backend.conf` / `nginx-mqs.conf` are the corresponding LB configs.
+`nginx-backend.conf` / `nginx-mqs.conf` are the LB configs used by `docker-compose.scale.yml` and `docker-compose.backend-dev.yml`. In the scaled stack, the frontend is baked at build time (Docker `ARG`/`ENV` in `frontend/Dockerfile`) to call the backend load balancer at `http://localhost/api` / `http://localhost` (host port 80), and is itself served on host port 8080 (container port 80) since the backend LB already owns port 80.
 
 ## Architecture
 
@@ -90,13 +81,13 @@ Socket auth (`backend/src/gateway/socket.ts`) trusts `socket.handshake.auth.toke
 
 Each domain lives under `backend/src/modules/<name>/` with `controller.ts` + `routes.ts` (+ `index.ts` re-export): `auth`, `chat` (conversations/messages), `users`. Shared cross-cutting code is under `backend/src/shared/` (`middleware/`, `services/`, `types/`) and `backend/src/config/` (Prisma client singleton, Socket.io instance accessor via `getIOInstance()`/`setIOInstance()` so controllers can emit socket events from REST handlers, e.g. `conversation:created` on `createConversation`).
 
-### Frontend conventions (enforced by `.github/agents/frontend.agent.md`)
+### Frontend conventions
 
-These are hard rules for this codebase, not suggestions:
+These are hard rules for this codebase, not suggestions (the `.github/agents/frontend.agent.md` file that used to state them has since been removed, but the conventions still hold and are enforced by review):
 
-- **Every component lives in its own folder**: `ComponentName/ComponentName.tsx` + `ComponentName.module.scss` + `index.ts` re-export. Named exports only, no default exports. Never a loose `.tsx` file outside its folder (a few legacy loose files like `frontend/src/components/chat/ChatList.tsx` predate this and coexist with the folder form — don't add more like them).
+- **Every component lives in its own folder**: `ComponentName/ComponentName.tsx` + `ComponentName.module.scss` + `index.ts` re-export. Named exports only, no default exports. Never a loose `.tsx` file outside its folder.
 - **All server data fetching goes through TanStack Query** (`useQuery`/`useMutation`). Never `useEffect` + `fetch` for server state.
-- **UI components come from Ant Design (antd v6)** — no Tailwind/MUI/custom CSS for things antd already provides.
+- **No component library** (Ant Design was removed) — UI is a bespoke, pixel-faithful recreation of the "Charla" design: OKLCH CSS custom properties for theming (`frontend/src/styles/globals.scss`, light/dark via `data-theme` on `<html>`), plain SCSS modules for every component.
 - Component styles use `@use "@/styles/abstracts/_variables"` and `@use "@/styles/_mixins"`; no inline `style={{}}` for layout.
 - Conditional classNames use `clsx`, not template literals.
 
