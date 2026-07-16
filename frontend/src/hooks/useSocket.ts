@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { socketService } from '../lib/socket';
 import { useAuthStore } from '../store/authStore';
 import { useChatStore } from '../store/chatStore';
+import { getRefreshedToken } from '../lib/api';
 import { WebSocketEvent } from '../types/websocket';
 import type { Message, Conversation } from '../types';
 
@@ -13,7 +14,12 @@ export const useSocket = () => {
   useEffect(() => {
     if (!token || !userId) return;
 
-    socketService.connect(token, userId);
+    socketService.connect();
+
+    // Expired/invalid access token — refresh before the next auto-reconnect attempt
+    socketService.on(WebSocketEvent.CONNECT_ERROR, () => {
+      void getRefreshedToken();
+    });
 
     // Listen for new messages
     socketService.on(WebSocketEvent.MESSAGE_RECEIVED, (message: Message) => {

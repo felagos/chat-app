@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 import { ENV } from './env';
+import { useAuthStore } from '../store/authStore';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,6 +17,8 @@ export const queryClient = new QueryClient({
 
 const API_URL = ENV.API_URL;
 
+const NO_INTERCEPT_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/refresh'];
+
 type FetchOptions = {
   token?: string;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -23,7 +26,31 @@ type FetchOptions = {
   headers?: Record<string, string>;
 };
 
-async function fetchApi(endpoint: string, options: FetchOptions = {}) {
+let refreshPromise: Promise<string | null> | null = null;
+
+export function getRefreshedToken(): Promise<string | null> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      const refreshToken = useAuthStore.getState().refreshToken;
+      if (!refreshToken) return null;
+
+      try {
+        const data = await fetchApi('/auth/refresh', { method: 'POST', body: { refreshToken } });
+        useAuthStore.getState().setTokens(data.token, data.refreshToken);
+        return data.token as string;
+      } catch {
+        useAuthStore.getState().logout();
+        return null;
+      }
+    })().finally(() => {
+      refreshPromise = null;
+    });
+  }
+
+  return refreshPromise;
+}
+
+async function fetchApi(endpoint: string, options: FetchOptions = {}, isRetry = false) {
   const { token, method = 'GET', body, headers = {} } = options;
 
   const defaultHeaders: Record<string, string> = {
@@ -40,6 +67,13 @@ async function fetchApi(endpoint: string, options: FetchOptions = {}) {
     headers: defaultHeaders,
     body: body ? JSON.stringify(body) : undefined,
   });
+
+  if (response.status === 401 && token && !isRetry && !NO_INTERCEPT_ENDPOINTS.includes(endpoint)) {
+    const newToken = await getRefreshedToken();
+    if (newToken) {
+      return fetchApi(endpoint, { ...options, token: newToken }, true);
+    }
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Unknown error' }));

@@ -1,17 +1,18 @@
 import { io, Socket } from 'socket.io-client';
 import { ENV } from './env';
+import { useAuthStore } from '../store/authStore';
 import { WebSocketEvent } from '../types/websocket';
 import type { WebSocketPayloads } from '../types/websocket';
 
 class SocketService {
   private socket: Socket | null = null;
 
-  connect(token: string, userId: string): Socket {
+  connect(): Socket {
     this.socket = io(ENV.WS_URL, {
-      auth: {
-        token,
-        userId,
-      },
+      auth: (cb) => cb({
+        token: useAuthStore.getState().token,
+        userId: useAuthStore.getState().user?.id,
+      }),
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,

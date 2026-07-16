@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { publishMessage } from '../shared/services/rabbitmq';
 import { WebSocketEvent } from '../shared/types/websocket';
@@ -5,6 +6,11 @@ import {
   markUserAsActive,
   markUserAsInactive
 } from '../shared/services/pushNotification';
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -18,15 +24,11 @@ export const setupSocketIO = (io: SocketIOServer): void => {
         return next(new Error('Authentication token missing'));
       }
 
-      const userId = socket.handshake.auth.userId;
-      if (!userId) {
-        return next(new Error('UserId missing'));
-      }
-
-      (socket as AuthenticatedSocket).userId = userId;
+      const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
+      (socket as AuthenticatedSocket).userId = decoded.id;
       next();
     } catch (error) {
-      next(new Error('Authentication failed'));
+      next(new Error('Invalid or expired token'));
     }
   });
 

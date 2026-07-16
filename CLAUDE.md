@@ -14,11 +14,13 @@ All three run on Bun (`bun run dev` / `bun install`), though the code is plain T
 
 ## Common Commands
 
-The root `Makefile` only wraps the two Docker Compose entry points:
+The root `Makefile` wraps the Docker Compose entry points:
 
 ```bash
-make up            # docker-compose -f docker-compose.scale.yml up -d — full scaled stack (3x backend, 3x mqs, both nginx LBs, frontend, Postgres/Mongo/Redis/RabbitMQ)
-make backend-dev    # docker-compose -f docker-compose.backend-dev.yml up -d — same stack minus frontend, for running the frontend locally with `bun run dev` against dockerized backend infra
+make up                # docker-compose -f docker-compose.scale.yml up -d — full scaled stack (3x backend, 3x mqs, both nginx LBs, frontend, Postgres/Mongo/Redis/RabbitMQ)
+make backend-dev       # docker-compose -f docker-compose.backend-dev.yml up -d — same stack minus frontend, for running the frontend locally with `bun run dev` against dockerized backend infra
+make build             # docker-compose build — build all images for docker-compose.scale.yml
+make build-backend-dev # docker-compose build — build all images for docker-compose.backend-dev.yml
 ```
 
 `docker-compose.yml` (single-instance, non-scaled) still exists for reference but has no Makefile target — invoke it directly with `docker-compose up -d` if needed.

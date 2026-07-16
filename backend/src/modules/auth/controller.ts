@@ -1,6 +1,12 @@
 import { Response } from 'express';
 import bcryptjs from 'bcryptjs';
-import { generateToken, AuthRequest } from '../../shared/middleware/auth';
+import {
+  generateAccessToken,
+  issueRefreshToken,
+  verifyRefreshToken,
+  revokeRefreshToken,
+  AuthRequest,
+} from '../../shared/middleware/auth';
 import prisma from '../../config/prisma';
 
 export const register = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -33,10 +39,12 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
       }
     });
 
-    const token = generateToken(user.id, user.email);
+    const token = generateAccessToken(user.id, user.email);
+    const refreshToken = await issueRefreshToken(user.id);
 
     res.status(201).json({
       token,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -74,10 +82,12 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    const token = generateToken(user.id, user.email);
+    const token = generateAccessToken(user.id, user.email);
+    const refreshToken = await issueRefreshToken(user.id);
 
     res.json({
       token,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -87,5 +97,55 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const refresh = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      res.status(400).json({ error: 'Missing refresh token' });
+      return;
+    }
+
+    const userId = await verifyRefreshToken(refreshToken);
+
+    if (!userId) {
+      res.status(401).json({ error: 'Invalid refresh token' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      res.status(401).json({ error: 'Invalid refresh token' });
+      return;
+    }
+
+    await revokeRefreshToken(refreshToken);
+
+    const newToken = generateAccessToken(user.id, user.email);
+    const newRefreshToken = await issueRefreshToken(user.id);
+
+    res.json({ token: newToken, refreshToken: newRefreshToken });
+  } catch (error) {
+    console.error('Refresh error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const logout = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (refreshToken) {
+      await revokeRefreshToken(refreshToken);
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(204).send();
   }
 };

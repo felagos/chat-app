@@ -7,14 +7,14 @@ import type { AuthResponse } from '../types';
 
 export const useAuth = () => {
   const navigate = useNavigate();
-  const { user, token, login, logout } = useAuthStore();
+  const { user, token, refreshToken, login, logout } = useAuthStore();
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { email: string; password: string }) => {
       return apiClient.post('/auth/login', credentials);
     },
     onSuccess: (data: AuthResponse) => {
-      login(data.token, data.user);
+      login(data.token, data.refreshToken, data.user);
       navigate('/chat');
     },
   });
@@ -28,7 +28,7 @@ export const useAuth = () => {
       return apiClient.post('/auth/register', data);
     },
     onSuccess: (data: AuthResponse) => {
-      login(data.token, data.user);
+      login(data.token, data.refreshToken, data.user);
       navigate('/chat');
     },
   });
@@ -48,8 +48,11 @@ export const useAuth = () => {
   );
 
   const handleLogout = useCallback(() => {
+    if (refreshToken) {
+      apiClient.post('/auth/logout', { refreshToken }).catch(() => {});
+    }
     logout();
-  }, [logout]);
+  }, [refreshToken, logout]);
 
   return {
     user,

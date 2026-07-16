@@ -65,8 +65,8 @@ services:
     build:
       context: ./message-queue-service
       dockerfile: Dockerfile
-    ports:
-      - "3001:3001"
+    expose:
+      - "3001"
     environment:
       NODE_ENV: production
       PORT: 3001
@@ -137,9 +137,12 @@ services:
     volumes:
       - ./nginx-mqs.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - message-queue-service-1
-      - message-queue-service-2
-      - message-queue-service-3
+      message-queue-service-1:
+        condition: service_healthy
+      message-queue-service-2:
+        condition: service_healthy
+      message-queue-service-3:
+        condition: service_healthy
     restart: unless-stopped
 
   # Backend - Instancia 1
@@ -156,7 +159,10 @@ services:
       MONGODB_URL: mongodb://user:password@mongodb:27017/chat_app
       REDIS_URL: redis://redis:6379
       MESSAGE_QUEUE_SERVICE_URL: http://mqs-loadbalancer:80
-      JWT_SECRET: your_jwt_secret_key_here_1
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      JWT_SECRET: your_jwt_secret_key_here
+      JWT_EXPIRATION: 15m
+      REFRESH_TOKEN_EXPIRATION: 7d
       INSTANCE: backend-1
     depends_on:
       postgres:
@@ -164,6 +170,8 @@ services:
       mongodb:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
       mqs-loadbalancer:
         condition: service_started
@@ -188,7 +196,10 @@ services:
       MONGODB_URL: mongodb://user:password@mongodb:27017/chat_app
       REDIS_URL: redis://redis:6379
       MESSAGE_QUEUE_SERVICE_URL: http://mqs-loadbalancer:80
-      JWT_SECRET: your_jwt_secret_key_here_2
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      JWT_SECRET: your_jwt_secret_key_here
+      JWT_EXPIRATION: 15m
+      REFRESH_TOKEN_EXPIRATION: 7d
       INSTANCE: backend-2
     depends_on:
       postgres:
@@ -196,6 +207,8 @@ services:
       mongodb:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
       mqs-loadbalancer:
         condition: service_started
@@ -220,7 +233,10 @@ services:
       MONGODB_URL: mongodb://user:password@mongodb:27017/chat_app
       REDIS_URL: redis://redis:6379
       MESSAGE_QUEUE_SERVICE_URL: http://mqs-loadbalancer:80
-      JWT_SECRET: your_jwt_secret_key_here_3
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      JWT_SECRET: your_jwt_secret_key_here
+      JWT_EXPIRATION: 15m
+      REFRESH_TOKEN_EXPIRATION: 7d
       INSTANCE: backend-3
     depends_on:
       postgres:
@@ -228,6 +244,8 @@ services:
       mongodb:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
       mqs-loadbalancer:
         condition: service_started
